@@ -1,5 +1,25 @@
 /* File: components/ScoreList.module.css */
 
+/* separator bar between score and FC icon */
+.sep {
+  margin: 0 8px;
+  font-weight: 700;
+  color: rgba(0,0,0,0.45); /* subtle color, adjust if you like */
+  line-height: 1;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* Full Combo icon (replaces divider) */
+.fcIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: inline-block;
+  transform: translateY(4px);
+  margin-right: 6px; /* small spacing before stats */
+  
+}
 .list {
   list-style: none;
   padding: 0;
@@ -31,18 +51,24 @@
 
 /* actual icon size */
 .icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   display: inline-block;
 }
 
 /* content area grows to fill remaining space */
 .contentColumn {
-  display: flex;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.left {
+  display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  flex: 1;
+  white-space: nowrap;
 }
 
 /* tune text pieces */
@@ -50,14 +76,27 @@
   font-weight: 700;
 }
 
+/* stats area (Greats/Goods/Bads) */
+.stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.statItem {
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
 .meta {
   font-size: 0.95rem;
   opacity: 0.85;
 }
 
 .scoreValue {
-  margin-left: 6px;
+  margin-left: 0px;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 /* Difficulty color classes */
@@ -73,5 +112,5 @@
 
 .difficultyHard {
   font-weight: bold;
-  color: #42b6f5; /* Light blue for Hard */
+  color: #35a4e0; /* Light blue for Hard */
 }
