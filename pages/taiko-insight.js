@@ -7,9 +7,9 @@ export default function Score() {
         <header className="text-center mb-12">
           <nav className="mb-8">
             <div className="flex justify-center space-x-6">
-              <a href="/" className="text-blue-600 hover:text-blue-800 font-medium">Home</a>
-              <a> //</a>
-              <a href="/taiko-insight" className="text-blue-600 hover:text-blue-800 font-medium"> Scores</a> <a> //</a>
+              <a href="/" className="text-blue-600 hover:text-blue-800 font-medium">Home</a> <a> //</a>
+              <a href="/page" className="text-blue-600 hover:text-blue-800 font-medium"> Score List</a> <a> //</a>
+              <a href="/taiko-insight" className="text-blue-600 hover:text-blue-800 font-medium"> Blog</a> <a> //</a>
               <a href="/test111" className="text-blue-600 hover:text-blue-800 font-medium">  Test</a>
               
             </div>
@@ -20,6 +20,9 @@ export default function Score() {
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Recent Scores</h1>
         
+<main className="min-h-screen flex items-center justify-center bg-slate-50">
+
+  <div className="absolute inset-0 flex items-center justify-center">
 <div className="flex flex-col items-center justify-center min-h-screen text-center gap-4">
   <p className="text-gray-600">
     Post score with result screen
@@ -37,10 +40,10 @@ export default function Score() {
 Monochrome Voice with only 51 good !
 very hard chart but only took me 3 tries to full combo
 
-
   </p>
 </div>
-
+  </div>
+</main>
 
         <div className="mt-6">
           <a href="/" className="text-blue-600 hover:text-blue-800">
