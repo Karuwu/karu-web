@@ -82,67 +82,69 @@ export default function ScoreList({ scores }: Props) {
                 />
               </ListItemAvatar>
 
-              <ListItemText
-                primary={
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Box display="inline-flex" alignItems="baseline" gap={1}>
-                      <Typography component="span" variant="subtitle1" sx={{ fontWeight: 700 }}>
-                        {score.song}
-                      </Typography>
+            <ListItemText
+  primary={
+    <Box display="flex" alignItems="center" gap={1}>
+      <Box display="inline-flex" alignItems="baseline" gap={1}>
+        <Typography component="span" variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {score.song}
+        </Typography>
 
-                      <Typography
-                        component="span"
-                        variant="body2"
-                        className={difficultyClass}
-                      >
-                        ({score.difficulty})
-                      </Typography>
+        <Typography
+          component="span"
+          variant="body2"
+          className={difficultyClass}
+        >
+          ({score.difficulty})
+        </Typography>
 
-                      <Typography component="span" variant="body2" sx={{ whiteSpace: 'nowrap' }}>
-                        - {fmt(score.score)}
-                      </Typography>
+        <Typography component="span" variant="body2" sx={{ whiteSpace: 'nowrap' }}>
+          - {fmt(score.score)}
+        </Typography>
 
-                      {/* vertical separator */}
-                      <Typography component="span" aria-hidden="true" className={styles.sep}>
-                        |
-                      </Typography>
+        {/* vertical separator */}
+        <Typography component="span" aria-hidden="true" className={styles.sep}>
+          |
+        </Typography>
 
-                      {/* Full Combo icon */}
-                      <img
-                        src={fullComboIcon}
-                        alt={
-                          score.isFullCombo
-                            ? (score.goods === 0 && score.bads === 0 ? 'Perfect Full Combo' : 'Full Combo')
-                            : 'Not Full Combo'
-                        }
-                        title={
-                          score.isFullCombo
-                            ? (score.goods === 0 && score.bads === 0 ? 'Perfect Full Combo' : 'Full Combo')
-                            : 'Not Full Combo'
-                        }
-                        className={styles.fcIcon}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                        style={{ width: 24, height: 24, objectFit: 'contain', marginLeft: 8 }}
-                      />
-                    </Box>
-                  </Box>
-                }
-                secondary={
-                  <Box className={styles.stats} display="flex" flexWrap="wrap" gap={2} mt={0.5}>
-                    <Typography component="span" variant="caption" className={styles.statItem}>
-                      Greats: <strong>{fmt(score.greats ?? 0)}</strong>
-                    </Typography>
-                    <Typography component="span" variant="caption" className={styles.statItem}>
-                      Goods: <strong>{fmt(score.goods ?? 0)}</strong>
-                    </Typography>
-                    <Typography component="span" variant="caption" className={styles.statItem}>
-                      Bads: <strong>{fmt(score.bads ?? 0)}</strong>
-                    </Typography>
-                  </Box>
-                }
-              />
+        {/* Full Combo icon */}
+        <img
+          src={fullComboIcon}
+          alt={
+            score.isFullCombo
+              ? (score.goods === 0 && score.bads === 0 ? 'Perfect Full Combo' : 'Full Combo')
+              : 'Not Full Combo'
+          }
+          title={
+            score.isFullCombo
+              ? (score.goods === 0 && score.bads === 0 ? 'Perfect Full Combo' : 'Full Combo')
+              : 'Not Full Combo'
+          }
+          className={styles.fcIcon}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = 'none';
+          }}
+          style={{ width: 24, height: 24, objectFit: 'contain', marginLeft: 8 }}
+        />
+      </Box>
+    </Box>
+  }
+  secondary={
+    <Box className={styles.stats} display="flex" flexWrap="wrap" gap={2} mt={0.5}>
+      <Typography component="span" variant="caption" className={styles.statItem}>
+        Greats: <strong>{fmt(score.greats ?? 0)}</strong>
+      </Typography>
+      <Typography component="span" variant="caption" className={styles.statItem}>
+        Goods: <strong>{fmt(score.goods ?? 0)}</strong>
+      </Typography>
+      <Typography component="span" variant="caption" className={styles.statItem}>
+        Bads: <strong>{fmt(score.bads ?? 0)}</strong>
+      </Typography>
+    </Box>
+  }
+  primaryTypographyProps={{ component: 'div' }}
+  secondaryTypographyProps={{ component: 'div' }}
+/>
             </ListItem>
           );
         })}
