@@ -1,6 +1,13 @@
-// components/Layout.js
 
-export default function Layout({ children }) {
+import ThemeRegistry from '../components/ThemeRegistry';
+import { ReactNode } from 'react';
+
+interface LayoutProps {
+  children: ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
+
   return (
     <div>
       <header className="text-center mb-12">

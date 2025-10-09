@@ -1,10 +1,9 @@
-import Layout from '@/components/layout';
+
 import Image from 'next/image'
 export default function Score() {
   return (
 
     
-<Layout>
       <div className="max-w-4xl mx-auto px-4">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Recent Scores</h1>
         
@@ -39,6 +38,5 @@ very hard chart but only took me 3 tries to full combo
           </a>
         </div>
       </div>
-    </Layout>
   );
 }

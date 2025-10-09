@@ -1,12 +1,10 @@
 
 import Image from 'next/image';
-import ImageUploader from '../components/imageupload.js';
-import Layout from '@/components/layout.js';
+import ImageUploader from '../components/imageupload';
 
 export default function Home() {
     return (
-<Layout>
-
+<div>
         {/* Image Uploader Section */}
         <section className="mb-12">
             <ImageUploader />
@@ -17,7 +15,6 @@ export default function Home() {
             ← Back to Home
           </a>
         </div>
-    </Layout>
-
+</div>
     );
 }
