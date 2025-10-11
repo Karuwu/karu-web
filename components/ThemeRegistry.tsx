@@ -4,6 +4,11 @@
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ReactNode } from 'react';
+import * as React from 'react';
+import { CacheProvider } from '@emotion/react';
+import createEmotionServer from '@emotion/server/create-instance';
+import { useServerInsertedHTML } from 'next/navigation';
+import createEmotionCache from '../lib/createEmotionCache';
 
 // Light theme
 const lightTheme = createTheme({
@@ -47,16 +52,24 @@ interface ThemeRegistryProps {
   mode?: 'light' | 'dark';
 }
 
-export default function ThemeRegistry({ 
-  children, 
-  mode = 'light' 
-}: ThemeRegistryProps) {
-  const theme = mode === 'dark' ? darkTheme : lightTheme;
+export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
+  // Create a new emotion cache for each request/client instance
+  const [cache] = React.useState(() => createEmotionCache());
 
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {children}
-    </ThemeProvider>
+  // Create an emotion server instance bound to that cache
+  const { extractCriticalToChunks, constructStyleTagsFromChunks } = React.useMemo(
+    () => createEmotionServer(cache),
+    [cache]
   );
+
+  useServerInsertedHTML(() => {
+    // extract the critical CSS chunks from the rendered markup
+    const chunks = extractCriticalToChunks('<!doctype html>');
+    // construct style tags string
+    const styles = constructStyleTagsFromChunks(chunks);
+    // Return a React node that Next will place into the HTML head during SSR
+    return <div dangerouslySetInnerHTML={{ __html: styles }} />;
+  });
+
+  return <CacheProvider value={cache}>{children}</CacheProvider>;
 }

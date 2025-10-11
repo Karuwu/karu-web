@@ -17,3 +17,11 @@ export const topScores: Score[] = [
   { "id": 4, "song": "Megalovania", "difficulty": "Oni", "score": 1015670, "greats": 820, "goods": 45, "bads": 1, "isFullCombo": false },
   { "id": 5, "song": "Don't Say Lazy", "difficulty": "Ura Oni", "score": 1200000, "greats": 777, "goods": 0, "bads": 0, "isFullCombo": true }
 ]
+
+// This async function simulates fetching data from an API
+export const getTopScores = async (): Promise<Score[]> => {
+  // Simulate a 1-second network delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  return topScores;
+};
