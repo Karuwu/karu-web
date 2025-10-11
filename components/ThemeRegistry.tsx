@@ -1,14 +1,10 @@
 // components/ThemeRegistry.tsx
+
 'use client';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { ReactNode } from 'react';
-import * as React from 'react';
-import { CacheProvider } from '@emotion/react';
-import createEmotionServer from '@emotion/server/create-instance';
-import { useServerInsertedHTML } from 'next/navigation';
-import createEmotionCache from '../lib/createEmotionCache';
+import { ReactNode, createContext, useContext, useState, useEffect } from 'react';
 
 // Light theme
 const lightTheme = createTheme({
@@ -47,29 +43,63 @@ const darkTheme = createTheme({
   },
 });
 
-interface ThemeRegistryProps {
-  children: ReactNode;
-  mode?: 'light' | 'dark';
+type ThemeMode = 'light' | 'dark';
+
+interface ThemeContextType {
+  toggleTheme: () => void;
+  mode: ThemeMode;
 }
 
-export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
-  // Create a new emotion cache for each request/client instance
-  const [cache] = React.useState(() => createEmotionCache());
+const ThemeContext = createContext<ThemeContextType>({
+  toggleTheme: () => {},
+  mode: 'light'
+});
 
-  // Create an emotion server instance bound to that cache
-  const { extractCriticalToChunks, constructStyleTagsFromChunks } = React.useMemo(
-    () => createEmotionServer(cache),
-    [cache]
+export const useTheme = () => {
+  return useContext(ThemeContext);
+};
+
+interface ThemeRegistryProps {
+  children: ReactNode;
+}
+
+export default function ThemeRegistry({ children }: ThemeRegistryProps) {
+  const [mode, setMode] = useState<ThemeMode>('light');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // This only runs on client after hydration
+    try {
+      const savedTheme = localStorage.getItem('theme') as ThemeMode;
+      if (savedTheme) {
+        setMode(savedTheme);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setMode('dark');
+      }
+    } catch (error) {
+      console.warn('Error accessing localStorage:', error);
+    }
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    const newMode = mode === 'light' ? 'dark' : 'light';
+    setMode(newMode);
+    try {
+      localStorage.setItem('theme', newMode);
+    } catch (error) {
+      console.warn('Error saving to localStorage:', error);
+    }
+  };
+
+  const theme = mode === 'dark' ? darkTheme : lightTheme;
+
+  return (
+    <ThemeContext.Provider value={{ toggleTheme, mode }}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
-
-  useServerInsertedHTML(() => {
-    // extract the critical CSS chunks from the rendered markup
-    const chunks = extractCriticalToChunks('<!doctype html>');
-    // construct style tags string
-    const styles = constructStyleTagsFromChunks(chunks);
-    // Return a React node that Next will place into the HTML head during SSR
-    return <div dangerouslySetInnerHTML={{ __html: styles }} />;
-  });
-
-  return <CacheProvider value={cache}>{children}</CacheProvider>;
 }
