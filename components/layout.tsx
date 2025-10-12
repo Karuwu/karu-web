@@ -20,6 +20,8 @@ export default function Layout({ children }: LayoutProps) {
             <a href="/blog" className="text-blue-600 hover:text-blue-800 font-medium"> Blog</a>
             <span> //</span>
             <a href="/test" className="text-blue-600 hover:text-blue-800 font-medium"> Test</a>
+                        <span> //</span>
+            <a href="/test2" className="text-blue-600 hover:text-blue-800 font-medium"> Test2</a>
           </div>
         </nav>
       </header>

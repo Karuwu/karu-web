@@ -1,0 +1,11 @@
+{
+  "name": "Song 1",
+  "audio": "/charts/song1.mp3",
+  "notes": [
+    {"time": 1000, "type": "red"},
+    {"time": 1500, "type": "blue"},
+    {"time": 2000, "type": "red"},
+    {"time": 2500, "type": "blue"},
+    {"time": 3000, "type": "red"}
+  ]
+}
