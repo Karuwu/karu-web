@@ -1,36 +1,45 @@
 // app/page.tsx
 
 import React from 'react';
-import RhythmGame from '../components/taiko/RhythmGame';
+import Link from 'next/link';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Image from 'next/image';
 
-export default function Games() {
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-          Rhythm Games
-        </h1>
-        
-        <p className="text-gray-600 mb-8 text-center">
-          Test your rhythm and timing skills with our Taiko-style rhythm game!
-        </p>
+    <div>
+      <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome to Karu Web</h1>
+      
+      {/* Main Content */}
+      <main className="space-y-8">
+        <section className="bg-white p-6 rounded-lg shadow-md">
+          <p className="text-gray-600 mb-4">
+            for taiko purposes
+          </p>
+          
+          <div className="flex flex-row gap-6 items-center">
+            <div className="w-1/2">
+              <Image 
+                src="/images/ruhsia stare.png" 
+                alt="hi" 
+                width={600} 
+                height={600}
+                className="rounded-lg"
+              />
+            </div>
+            <div className="w-1/2">
+              <p>(良い子ですか...?)</p>
+            </div>
+          </div>
+        </section>
+      </main>
 
-        {/* Game Component */}
-        <RhythmGame />
-
-        <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-            How to Play
-          </h2>
-          <ul className="list-disc list-inside text-gray-600 space-y-2">
-            <li>Press <strong>F</strong> for red notes when they reach the circle</li>
-            <li>Press <strong>J</strong> for blue notes when they reach the circle</li>
-            <li>Try to get Perfect timing for maximum points</li>
-            <li>Build combos to increase your score multiplier</li>
-            <li>Click "Start Game" to begin and "Reset" to restart</li>
-          </ul>
-        </div>
-      </div>
-    </div>
+      {/* Footer */}
+      <footer className="text-center mt-12 pt-8 border-t border-gray-300">
+        <p className="text-gray-500"><i>-karu web 2025</i></p>
+      </footer>
+</div>
   );
 }
