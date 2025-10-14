@@ -1,5 +1,8 @@
+// File: lib/data.ts
+import { db } from './firebase';
+
 export interface Score {
-  id: number;
+  id: string;
   song: string;
   difficulty: string;
   score: number;
@@ -9,19 +12,36 @@ export interface Score {
   isFullCombo: boolean;
 }
 
-export const topScores: Score[] = [
-
-  { "id": 1, "song": "Gurenge", "difficulty": "Oni", "score": 987650, "greats": 718, "goods": 62, "bads": 0, "isFullCombo": true },
-  { "id": 2, "song": "Natsumatsuri", "difficulty": "Oni", "score": 954320, "greats": 645, "goods": 77, "bads": 4, "isFullCombo": false },
-  { "id": 3, "song": "Senbonzakura", "difficulty": "Hard", "score": 899100, "greats": 601, "goods": 90, "bads": 5, "isFullCombo": false },
-  { "id": 4, "song": "Megalovania", "difficulty": "Oni", "score": 1015670, "greats": 820, "goods": 45, "bads": 1, "isFullCombo": false },
-  { "id": 5, "song": "Don't Say Lazy", "difficulty": "Ura Oni", "score": 1200000, "greats": 777, "goods": 0, "bads": 0, "isFullCombo": true }
-]
-
-// This async function simulates fetching data from an API
 export const getTopScores = async (): Promise<Score[]> => {
-  // Simulate a 1-second network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return topScores;
+  if (!db) {
+    console.error('Firebase database not initialized');
+    return [];
+  }
+
+  try {
+    console.log('Querying Firestore collection: scores'); // Debug log
+    const snapshot = await db.collection('scores').get();
+    if (snapshot.empty) {
+      console.log('No documents found in "scores" collection');
+      return [];
+    }
+    const scores: Score[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      song: doc.data().Song as string,
+      difficulty: doc.data().Difficulty as string,
+      score: doc.data().Score as number,
+      greats: doc.data().Greats as number,
+      goods: doc.data().Goods as number,
+      bads: doc.data().Bads as number,
+      isFullCombo: doc.data().isFullCombo as boolean,
+    }));
+    return scores;
+  } catch (error) {
+    console.error('Error fetching scores from Firebase:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any).code,
+      details: (error as any).details,
+    });
+    return [];
+  }
 };

@@ -293,6 +293,8 @@ const Game = () => {
         setShowResults={setShowResults}
         setNotes={setNotes}
         getCurrentTime={() => getCurrentTime(paused, pauseTime, startTime, audioRef)}
+        songName={chartData?.name}
+        showResults={showResults}
       />
       <audio ref={audioRef} />
       <audio ref={redHitsoundRef} src="/audio/don.ogg" />

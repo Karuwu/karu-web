@@ -1,25 +1,15 @@
 'use client';
-import React, { use, useMemo, useState, useEffect } from 'react';
+import React from 'react';
 import { List, ListItem, Avatar, Box, Typography, Paper } from '@mui/material';
-import { Score, getTopScores } from '../lib/topScores';
+import { Score } from '../lib/topScores';
 import styles from './ScoreList.module.css';
 
-export default function ScoreList() {
-  const [mounted, setMounted] = useState(false);
+interface Props {
+  scores: Score[];
+}
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const scorePromise = useMemo(() => getTopScores(), []);
-
-  if (!mounted) {
-    return null; // Suspense fallback will handle initial loading
-  }
-
-  const scores = use(scorePromise);
-
-  if (scores.length === 0) {
+export default function ScoreList({ scores }: Props) {
+  if (!scores || scores.length === 0) {
     return <Typography color="textSecondary">No scores to show</Typography>;
   }
 
@@ -70,7 +60,13 @@ export default function ScoreList() {
               <Typography component="span" variant="body2">
                 - {fmt(score.score)}
               </Typography>
-              <Box display="flex" flexWrap="wrap" gap={2} mt={0.5}>
+              <Box display="flex" flexWrap="wrap" gap={1} mt={0.4} alignItems="center" ml={0.3}>
+                <Avatar
+                  src={iconForFullCombo(score)}
+                  alt="Full combo status icon"
+                  variant="square"
+                  sx={{ width: 23.5, height: 21, bgcolor: 'transparent', mr: 0 }}
+                />
                 <Typography component="span" variant="caption">
                   Greats: <strong>{fmt(score.greats ?? 0)}</strong>
                 </Typography>

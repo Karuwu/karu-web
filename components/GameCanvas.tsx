@@ -16,6 +16,8 @@ interface GameCanvasProps {
   setShowResults: (showResults: boolean) => void;
   setNotes: (notes: Note[]) => void;
   getCurrentTime: () => number;
+  songName: string | undefined;
+  showResults: boolean;
 }
 
 export const GameCanvas: React.FC<GameCanvasProps> = ({
@@ -33,6 +35,8 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
   setShowResults,
   setNotes,
   getCurrentTime,
+  songName,
+  showResults,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -97,12 +101,26 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         }
       });
 
-      // Draw score, judgment, and combo
+      // Draw score, judgment, combo, and song name
       ctx.fillStyle = 'black';
       ctx.font = '20px Arial';
       ctx.fillText(`Score: ${score}`, 10, 30);
       ctx.fillText(judgment, judgmentX - 50, height / 2 - 50);
       ctx.fillText(`Combo: ${combo}`, judgmentX - 50, height / 2 + 70);
+      if (playing && !showResults && songName) {
+        ctx.textAlign = 'right';
+        const maxWidth = 200;
+        let displayName = songName;
+        if (ctx.measureText(songName).width > maxWidth) {
+          let truncated = songName;
+          while (ctx.measureText(truncated + '...').width > maxWidth && truncated.length > 0) {
+            truncated = truncated.slice(0, -1);
+          }
+          displayName = truncated + '...';
+        }
+        ctx.fillText(displayName, 790, 30);
+        ctx.textAlign = 'left';
+      }
 
       // Check for misses
       let hasMiss = false;
@@ -135,7 +153,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
     animationFrameId = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [notes, playing, paused, score, judgment, combo, setJudgment, setMisses, setCombo, setPlaying, setPaused, setShowResults, setNotes, getCurrentTime]);
+  }, [notes, playing, paused, score, judgment, combo, setJudgment, setMisses, setCombo, setPlaying, setPaused, setShowResults, setNotes, getCurrentTime, songName, showResults]);
 
   return <canvas ref={canvasRef} width={800} height={400} style={{ border: '1px solid black' }} />;
 };

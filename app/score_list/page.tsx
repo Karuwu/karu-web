@@ -6,14 +6,17 @@ import Box from '@mui/material/Box';
 import Link from 'next/link';
 import ScoreList from '../../components/ScoreList';
 import ScoreListLoading from './ScoreListLoading';
+import { getTopScores } from '../../lib/topScores';
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const scores = await getTopScores(); // Server-side fetch
+
   return (
     <section>
       <h1 className="text-4xl font-bold mb-4">My Taiko Journey</h1>
 
       <Suspense fallback={<ScoreListLoading />}>
-        <ScoreList />
+        <ScoreList scores={scores} />
       </Suspense>
 
       <Box mt={3}>
