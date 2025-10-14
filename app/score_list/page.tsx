@@ -1,21 +1,20 @@
 // app/score_list/page.tsx
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Link from 'next/link';
-import ScoreList from '../../components/ScoreList'; // use absolute or adjust relative path
-import { getTopScores } from '../../lib/topScores'; // path to your data helper
+import ScoreList from '../../components/ScoreList';
+import ScoreListLoading from './ScoreListLoading';
 
-export default async function AboutPage() {
-  const topScores = await getTopScores(); // server fetch - suspends the component
-
+export default function AboutPage() {
   return (
     <section>
-<h1 className="text-4xl font-bold mb-4">My Taiko Journey</h1>
+      <h1 className="text-4xl font-bold mb-4">My Taiko Journey</h1>
 
-
-      <ScoreList scores={topScores} />
+      <Suspense fallback={<ScoreListLoading />}>
+        <ScoreList />
+      </Suspense>
 
       <Box mt={3}>
         <Link href="/" style={{ color: '#1976d2', textDecoration: 'none' }}>

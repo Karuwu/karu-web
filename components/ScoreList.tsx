@@ -1,25 +1,26 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { use, useMemo, useState, useEffect } from 'react';
 import { List, ListItem, Avatar, Box, Typography, Paper } from '@mui/material';
-import type { Score } from '../lib/topScores';
+import { Score, getTopScores } from '../lib/topScores';
 import styles from './ScoreList.module.css';
 
-type Props = { scores?: Score[] };
-
-export default function ScoreList({ scores }: Props) {
+export default function ScoreList() {
   const [mounted, setMounted] = useState(false);
 
-  // Only render after client mount
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!scores) return <Typography color="error">No scores provided</Typography>;
-  if (scores.length === 0) return <Typography color="textSecondary">No scores to show</Typography>;
+  const scorePromise = useMemo(() => getTopScores(), []);
 
   if (!mounted) {
-    // Render a placeholder while server HTML is empty
-    return <Paper elevation={1} sx={{ padding: 2 }}>Loading scores...</Paper>;
+    return null; // Suspense fallback will handle initial loading
+  }
+
+  const scores = use(scorePromise);
+
+  if (scores.length === 0) {
+    return <Typography color="textSecondary">No scores to show</Typography>;
   }
 
   const fmt = (n?: number) => (typeof n === 'number' ? n.toLocaleString() : '0');
