@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { List, ListItem, Avatar, Box, Typography, Paper } from '@mui/material';
 import { Score } from '../lib/topScores';
 import styles from './ScoreList.module.css';
@@ -37,48 +38,57 @@ export default function ScoreList({ scores }: Props) {
   };
 
   return (
-    <Paper elevation={1} sx={{ padding: 2 }}>
+    <Paper elevation={2} sx={{ mb: 2, p: 2 }}>
       <Typography variant="h6" component="h2" gutterBottom>
         Top Scores
       </Typography>
       <List>
         {scores.map((score) => (
-          <ListItem key={score.id} disableGutters>
-            <Avatar
-              src={iconForDifficulty(score.difficulty)}
-              alt={`${score.difficulty} icon`}
-              variant="square"
-              sx={{ width: 40, height: 40, bgcolor: 'transparent' }}
-            />
-            <Box ml={2}>
-              <Typography component="span" variant="subtitle1" fontWeight={700}>
-                {score.song}
-              </Typography>{' '}
-              <Typography component="span" variant="body2" className={classForDifficulty(score.difficulty)}>
-                ({score.difficulty})
-              </Typography>{' '}
-              <Typography component="span" variant="body2">
-                - {fmt(score.score)}
-              </Typography>
-              <Box display="flex" flexWrap="wrap" gap={1} mt={0.4} alignItems="center" ml={0.3}>
-                <Avatar
-                  src={iconForFullCombo(score)}
-                  alt="Full combo status icon"
-                  variant="square"
-                  sx={{ width: 23.5, height: 21, bgcolor: 'transparent', mr: 0 }}
-                />
-                <Typography component="span" variant="caption">
-                  Greats: <strong>{fmt(score.greats ?? 0)}</strong>
+          <Link key={score.id} href={`/scores/${score.id}`} passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+            <ListItem
+              disableGutters
+              sx={{
+                p: 0.5,
+                backgroundColor: 'transparent',
+                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.05)' },
+              }}
+            >
+              <Avatar
+                src={iconForDifficulty(score.difficulty)}
+                alt={`${score.difficulty} icon`}
+                variant="square"
+                sx={{ width: 40, height: 40, bgcolor: 'transparent' }}
+              />
+              <Box ml={2}>
+                <Typography component="span" variant="subtitle1" fontWeight={700}>
+                  {score.song}
+                </Typography>{' '}
+                <Typography component="span" variant="body2" className={classForDifficulty(score.difficulty)}>
+                  ({score.difficulty})
+                </Typography>{' '}
+                <Typography component="span" variant="body2">
+                  - {fmt(score.score)}
                 </Typography>
-                <Typography component="span" variant="caption">
-                  Goods: <strong>{fmt(score.goods ?? 0)}</strong>
-                </Typography>
-                <Typography component="span" variant="caption">
-                  Bads: <strong>{fmt(score.bads ?? 0)}</strong>
-                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1} mt={0.4} alignItems="center" ml={0.3}>
+                  <Avatar
+                    src={iconForFullCombo(score)}
+                    alt="Full combo status icon"
+                    variant="square"
+                    sx={{ width: 23.5, height: 21, bgcolor: 'transparent', mr: 0 }}
+                  />
+                  <Typography component="span" variant="caption">
+                    Greats: <strong>{fmt(score.greats ?? 0)}</strong>
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    Goods: <strong>{fmt(score.goods ?? 0)}</strong>
+                  </Typography>
+                  <Typography component="span" variant="caption">
+                    Bads: <strong>{fmt(score.bads ?? 0)}</strong>
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          </ListItem>
+            </ListItem>
+          </Link>
         ))}
       </List>
     </Paper>
