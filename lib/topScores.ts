@@ -1,5 +1,6 @@
 // File: lib/data.ts
 import { db } from './firebase';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export interface Score {
   id: string;
@@ -10,6 +11,9 @@ export interface Score {
   goods: number;
   bads: number;
   isFullCombo: boolean;
+  hits?: number;
+  maxCombo?: number;
+  dateAchieved?: Timestamp | string;
 }
 
 export const getTopScores = async (): Promise<Score[]> => {
@@ -19,7 +23,7 @@ export const getTopScores = async (): Promise<Score[]> => {
   }
 
   try {
-    console.log('Querying Firestore collection: scores'); // Debug log
+    console.log('Querying Firestore collection: scores');
     const snapshot = await db.collection('scores').get();
     if (snapshot.empty) {
       console.log('No documents found in "scores" collection');
@@ -43,37 +47,44 @@ export const getTopScores = async (): Promise<Score[]> => {
       details: (error as any).details,
     });
     return [];
-    
   }
-
 };
 
-// NEW FUNCTION to get a single document by its ID
 export const getScoreById = async (id: string): Promise<Score | null> => {
-  console.log(`Fetching score with ID: ${id}`);
-  
-  // 1. Get a reference to the specific document
-  const scoreDocRef = db.collection('scores').doc(id);
-  
-  // 2. Fetch the document's data
-  const scoreDoc = await scoreDocRef.get();
-
-  // 3. Check if the document actually exists
-  if (!scoreDoc.exists) {
-    console.log('No such document!');
-    return null; // Return null if not found
+  if (!db) {
+    console.error('Firebase database not initialized');
+    return null;
   }
-
-  // 4. Return the combined data and ID
-  const data = scoreDoc.data()!; // The '!' tells TypeScript we are sure it exists
-  return {
-    id: scoreDoc.id,
-    song: data.Song,
-    difficulty: data.Difficulty,
-    score: data.Score,
-    greats: data.Greats,
-    goods: data.Goods,
-    bads: data.Bads,
-    isFullCombo: data.isFullCombo,
-  };
+  try {
+    console.log('Fetching score with ID:', id);
+    const doc = await db.collection('scores').doc(id).get();
+    if (!doc.exists) {
+      console.log('No score found for ID:', id);
+      return null;
+    }
+    const data = doc.data();
+    console.log('Raw Firestore data:', data);
+    const score: Score = {
+      id: doc.id,
+      song: data?.Song as string,
+      difficulty: data?.Difficulty as string,
+      score: data?.Score as number,
+      greats: data?.Greats as number,
+      goods: data?.Goods as number,
+      bads: data?.Bads as number,
+      isFullCombo: data?.isFullCombo as boolean,
+      hits: data?.Hits as number,
+      maxCombo: data?.MaxCombo as number,
+      dateAchieved: data?.DateAchieved as Timestamp | string,
+    };
+    console.log('Mapped score:', score);
+    return score;
+  } catch (error) {
+    console.error('Error fetching score:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      code: (error as any).code,
+      details: (error as any).details,
+    });
+    return null;
+  }
 };

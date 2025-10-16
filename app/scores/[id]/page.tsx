@@ -13,7 +13,7 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ id
   console.log('Fetched score:', score);
 
   if (!score) {
-    notFound(); // Trigger /app/not-found.tsx
+    notFound();
   }
 
   const fmt = (n?: number) => (typeof n === 'number' ? n.toLocaleString() : '0');
@@ -39,54 +39,72 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ id
     return '';
   };
 
+  const formatDate = (date?: string | { seconds: number; nanoseconds: number }) => {
+    if (!date) return 'Unknown';
+    if (typeof date === 'string') return date;
+    const d = new Date(date.seconds * 1000);
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  };
+
   return (
     <Container maxWidth="md">
-      <Paper sx={{ p: 3, mt: 4 }}>
-        <Typography variant="h6" component="h2" gutterBottom>
-          Score Details
-        </Typography>
-        <Box display="flex" alignItems="flex-start">
+      <Typography variant="h4" align="center" gutterBottom sx={{ mt: 4 }}>
+        Score Details
+      </Typography>
+      <Paper sx={{ p: 3, mt: 2 }}>
+        <Box display="flex" alignItems="center" mb={2.5}>
           <Avatar
             src={iconForDifficulty(score.difficulty)}
             alt={`${score.difficulty} icon`}
             variant="square"
-            sx={{ width: 40, height: 40, bgcolor: 'transparent' }}
+            sx={{ width: 50, height: 50, bgcolor: 'transparent', ml: 0 }}
           />
-          <Box ml={2}>
-            <Typography component="span" variant="subtitle1" fontWeight={700}>
-              {score.song}
-            </Typography>{' '}
-            <Typography component="span" variant="body2" className={classForDifficulty(score.difficulty)}>
-              ({score.difficulty})
-            </Typography>{' '}
-            <Typography component="span" variant="body2">
-              - {fmt(score.score)}
+          <Typography variant="h3" component="h1" fontWeight={700} marginLeft={2}>
+            {score.song}
+          </Typography>
+
+        </Box>
+        <Box display="flex" alignItems="center" mb={2}>
+          <Avatar
+            src={iconForFullCombo(score)}
+            alt="Full combo status icon"
+            variant="square"
+            sx={{ width: 23.5, height: 21, bgcolor: 'transparent', mr: 1 }}
+          />
+          <Typography component="span" variant="h5">
+            {fmt(score.score)}
+          </Typography>
+        </Box>
+        <Box display="flex" gap={4} mb={2}>
+          <Box display="flex" flexDirection="column" gap={0.4}>
+            <Typography component="span" variant="body1">
+              Greats: <strong>{fmt(score.greats ?? 0)}</strong>
             </Typography>
-            <Box display="flex" flexWrap="wrap" gap={1} mt={0.4} alignItems="center" ml={0.3}>
-              <Avatar
-                src={iconForFullCombo(score)}
-                alt="Full combo status icon"
-                variant="square"
-                sx={{ width: 23.5, height: 21, bgcolor: 'transparent', mr: 0 }}
-              />
-              <Typography component="span" variant="caption">
-                Greats: <strong>{fmt(score.greats ?? 0)}</strong>
-              </Typography>
-              <Typography component="span" variant="caption">
-                Goods: <strong>{fmt(score.goods ?? 0)}</strong>
-              </Typography>
-              <Typography component="span" variant="caption">
-                Bads: <strong>{fmt(score.bads ?? 0)}</strong>
-              </Typography>
-            </Box>
+            <Typography component="span" variant="body1">
+              Goods: <strong>{fmt(score.goods ?? 0)}</strong>
+            </Typography>
+            <Typography component="span" variant="body1">
+              Bads: <strong>{fmt(score.bads ?? 0)}</strong>
+            </Typography>
+          </Box>
+          <Box display="flex" flexDirection="column" gap={0.4}>
+            <Typography component="span" variant="body1">
+              Hits: <strong>{fmt(score.hits ?? 0)}</strong>
+            </Typography>
+            <Typography component="span" variant="body1">
+              Max Combo: <strong>{fmt(score.maxCombo ?? 0)}</strong>
+            </Typography>
           </Box>
         </Box>
-        <Box mt={2}>
-          <Link href="/score_list" sx={{ color: '#1976d2', textDecoration: 'none' }}>
-            Back to Scores
+        <Typography variant="subtitle1">
+          Date Achieved: {formatDate(score.dateAchieved)}
+        </Typography>
+      </Paper>
+              <Box mt={2}>
+          <Link href="/score_list" sx={{ color: '#1976d2', textDecoration: 'none', fontSize: '1rem' }}>
+            ← Back to Scores
           </Link>
         </Box>
-      </Paper>
     </Container>
   );
 }
