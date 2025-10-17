@@ -6,7 +6,7 @@ import { parseNotes, getCurrentTime, handleKeyDown } from '../lib/GameLogic';
 import { GameCanvas } from './GameCanvas';
 
 const Game = () => {
-  const [charts] = useState<string[]>(['Natsumatsuri', 'song1']);
+  const [charts, setCharts] = useState<string[]>([]);
   const [selectedChart, setSelectedChart] = useState<string | null>(null);
   const [chartData, setChartData] = useState<Chart | null>(null);
   const [score, setScore] = useState(0);
@@ -14,6 +14,7 @@ const Game = () => {
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [measureTimes, setMeasureTimes] = useState<number[]>([]);
   const [startTime, setStartTime] = useState(0);
   const [pauseTime, setPauseTime] = useState(0);
   const [perfects, setPerfects] = useState(0);
@@ -31,9 +32,24 @@ const Game = () => {
     return savedVolume ? parseFloat(savedVolume) : 0.5;
   });
   const [showResults, setShowResults] = useState(false);
+  const [lastKeyTimes, setLastKeyTimes] = useState({ f: 0, j: 0, d: 0, k: 0 });
   const audioRef = useRef<HTMLAudioElement>(null);
   const redHitsoundRef = useRef<HTMLAudioElement>(null);
   const blueHitsoundRef = useRef<HTMLAudioElement>(null);
+  const bigRedHitsoundRef = useRef<HTMLAudioElement>(null);
+  const bigBlueHitsoundRef = useRef<HTMLAudioElement>(null);
+
+  // Fetch available charts from /api/charts
+  useEffect(() => {
+    fetch('/api/charts')
+      .then((res) => res.json())
+      .then((data: string[]) => {
+        // Assuming data is an array of filenames (e.g., ['Natsumatsuri.json', 'song1.json'])
+        const chartNames = data.map((file) => file.replace('.json', ''));
+        setCharts(chartNames);
+      })
+      .catch((err) => console.error('Failed to load chart list:', err));
+  }, []);
 
   // Save song volume to localStorage
   useEffect(() => {
@@ -52,7 +68,9 @@ const Game = () => {
         .then((res) => res.json())
         .then((data: Chart) => {
           setChartData(data);
-          setNotes(parseNotes(data));
+          const { notes, measureTimes } = parseNotes(data);
+          setNotes(notes);
+          setMeasureTimes(measureTimes);
           setScore(0);
           setPerfects(0);
           setGoods(0);
@@ -63,6 +81,7 @@ const Game = () => {
           setShowResults(false);
           setPlaying(false);
           setPaused(false);
+          setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
           if (audioRef.current && data.audio) {
             audioRef.current.src = data.audio;
             audioRef.current.volume = songVolume;
@@ -70,7 +89,7 @@ const Game = () => {
         })
         .catch((err) => console.error('Failed to load chart:', err));
     }
-  }, [selectedChart]);
+  }, [selectedChart, songVolume]);
 
   // Update song volume
   useEffect(() => {
@@ -87,6 +106,12 @@ const Game = () => {
     if (blueHitsoundRef.current) {
       blueHitsoundRef.current.volume = hitsoundVolume;
     }
+    if (bigRedHitsoundRef.current) {
+      bigRedHitsoundRef.current.volume = hitsoundVolume;
+    }
+    if (bigBlueHitsoundRef.current) {
+      bigBlueHitsoundRef.current.volume = hitsoundVolume;
+    }
   }, [hitsoundVolume]);
 
   // Start game
@@ -99,8 +124,11 @@ const Game = () => {
     setHits(0);
     setCombo(0);
     setHighestCombo(0);
-    setNotes(parseNotes(chartData));
+    const { notes, measureTimes } = parseNotes(chartData);
+    setNotes(notes);
+    setMeasureTimes(measureTimes);
     setStartTime(Date.now());
+    setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
     if (audioRef.current && chartData.audio) {
       audioRef.current.play().catch((err) => console.error('Audio play failed:', err));
     }
@@ -119,6 +147,20 @@ const Game = () => {
         blueHitsoundRef.current.volume = hitsoundVolume;
       }).catch((err) => console.error('Blue hitsound preload failed:', err));
     }
+    if (bigRedHitsoundRef.current) {
+      bigRedHitsoundRef.current.volume = 0;
+      bigRedHitsoundRef.current.play().then(() => {
+        bigRedHitsoundRef.current?.pause();
+        bigRedHitsoundRef.current.volume = hitsoundVolume;
+      }).catch((err) => console.error('Big red hitsound preload failed:', err));
+    }
+    if (bigBlueHitsoundRef.current) {
+      bigBlueHitsoundRef.current.volume = 0;
+      bigBlueHitsoundRef.current.play().then(() => {
+        bigBlueHitsoundRef.current?.pause();
+        bigBlueHitsoundRef.current.volume = hitsoundVolume;
+      }).catch((err) => console.error('Big blue hitsound preload failed:', err));
+    }
     setPlaying(true);
     setPaused(false);
     setShowResults(false);
@@ -134,10 +176,13 @@ const Game = () => {
     setHits(0);
     setCombo(0);
     setHighestCombo(0);
-    setNotes(parseNotes(chartData));
+    const { notes, measureTimes } = parseNotes(chartData);
+    setNotes(notes);
+    setMeasureTimes(measureTimes);
     setPlaying(false);
     setPaused(false);
     setShowResults(false);
+    setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -192,13 +237,16 @@ const Game = () => {
         setHighestCombo,
         () => getCurrentTime(paused, pauseTime, startTime, audioRef),
         redHitsoundRef,
-        blueHitsoundRef
+        blueHitsoundRef,
+        bigRedHitsoundRef,
+        bigBlueHitsoundRef,
+        lastKeyTimes
       );
     };
 
     window.addEventListener('keydown', keyDownHandler);
     return () => window.removeEventListener('keydown', keyDownHandler);
-  }, [playing, paused, notes, pauseTime, startTime]);
+  }, [playing, paused, notes, pauseTime, startTime, lastKeyTimes]);
 
   // Reset game for replay
   const resetGameForReplay = () => {
@@ -210,10 +258,13 @@ const Game = () => {
     setHits(0);
     setCombo(0);
     setHighestCombo(0);
-    setNotes(parseNotes(chartData));
+    const { notes, measureTimes } = parseNotes(chartData);
+    setNotes(notes);
+    setMeasureTimes(measureTimes);
     setPlaying(false);
     setPaused(false);
     setShowResults(false);
+    setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -280,6 +331,7 @@ const Game = () => {
       <h1>Taiko Rhythm Game</h1>
       <GameCanvas
         notes={notes}
+        measureTimes={measureTimes}
         playing={playing}
         paused={paused}
         score={score}
@@ -299,6 +351,8 @@ const Game = () => {
       <audio ref={audioRef} />
       <audio ref={redHitsoundRef} src="/audio/don.ogg" />
       <audio ref={blueHitsoundRef} src="/audio/kat.ogg" />
+      <audio ref={bigRedHitsoundRef} src="/audio/big_red_hitsound.ogg" />
+      <audio ref={bigBlueHitsoundRef} src="/audio/big_blue_hitsound.ogg" />
       <div style={{ marginTop: '20px' }}>
         <label style={{ marginRight: '10px' }}>
           Song Volume:
@@ -351,7 +405,7 @@ const Game = () => {
           </>
         )}
       </div>
-      <p>Controls: F/J for red notes, D/K for blue notes, F/J or D/K for drumrolls, F/J for balloons</p>
+      <p>Controls: F/J for red notes, D/K for blue notes, F+J for big red, D+K for big blue, F/J or D/K for drumrolls, F/J for balloons</p>
     </div>
   );
 };

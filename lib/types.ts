@@ -1,7 +1,7 @@
 // for taiko game
 export interface Note {
   time: number;
-  type: 'red' | 'blue' | 'drumroll' | 'balloon';
+  type: 'red' | 'blue' | 'big_red' | 'big_blue' | 'drumroll' | 'balloon';
   hit: boolean;
   endTime?: number; // For drumroll/balloon duration
   requiredHits?: number; // For balloon

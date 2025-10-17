@@ -3,6 +3,7 @@ import { Note } from '../lib/types';
 
 interface GameCanvasProps {
   notes: Note[];
+  measureTimes: number[];
   playing: boolean;
   paused: boolean;
   score: number;
@@ -22,6 +23,7 @@ interface GameCanvasProps {
 
 export const GameCanvas: React.FC<GameCanvasProps> = ({
   notes,
+  measureTimes,
   playing,
   paused,
   score,
@@ -52,6 +54,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
     const noteRadius = 30;
     const height = canvas.height;
     const width = canvas.width;
+    const laneHeight = noteRadius * 2; // Height of note lane (60px)
 
     const draw = () => {
       if (!playing || paused) return;
@@ -70,6 +73,20 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
       ctx.strokeStyle = 'gold';
       ctx.stroke();
 
+      // Draw measure lines (before notes to appear behind)
+      measureTimes.forEach((measureTime) => {
+        const posX = judgmentX + (measureTime - currentTime) * speed;
+        if (posX >= 0 && posX <= width) {
+          ctx.beginPath();
+          ctx.moveTo(posX, height / 2 - laneHeight / 1.15);
+          ctx.lineTo(posX, height / 2 + laneHeight / 1.15);
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+          ctx.lineWidth = 1; // Reset line width
+        }
+      });
+
       // Draw notes
       notes.forEach((note) => {
         if (note.hit) return;
@@ -79,10 +96,11 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
         }
         if (posX > width) return;
 
-        if (note.type === 'red' || note.type === 'blue') {
+        if (note.type === 'red' || note.type === 'blue' || note.type === 'big_red' || note.type === 'big_blue') {
           ctx.beginPath();
-          ctx.arc(posX, height / 2, noteRadius, 0, Math.PI * 2);
-          ctx.fillStyle = note.type;
+          const radius = (note.type === 'big_red' || note.type === 'big_blue') ? noteRadius * 1.5 : noteRadius;
+          ctx.arc(posX, height / 2, radius, 0, Math.PI * 2);
+          ctx.fillStyle = note.type === 'big_red' || note.type === 'red' ? 'red' : 'blue';
           ctx.fill();
         } else if (note.type === 'drumroll') {
           const endPosX = judgmentX + ((note.endTime || note.time) - currentTime) * speed;
@@ -153,7 +171,7 @@ export const GameCanvas: React.FC<GameCanvasProps> = ({
 
     animationFrameId = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [notes, playing, paused, score, judgment, combo, setJudgment, setMisses, setCombo, setPlaying, setPaused, setShowResults, setNotes, getCurrentTime, songName, showResults]);
+  }, [notes, measureTimes, playing, paused, score, judgment, combo, setJudgment, setMisses, setCombo, setPlaying, setPaused, setShowResults, setNotes, getCurrentTime, songName, showResults]);
 
   return <canvas ref={canvasRef} width={800} height={400} style={{ border: '1px solid black' }} />;
 };
