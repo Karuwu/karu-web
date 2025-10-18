@@ -7,6 +7,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../lib/firebase-client";
 import { Container, Typography, CircularProgress, Button } from "@mui/material";
 import { useAuth } from "../../components/AuthProvider";
+import CreatePostForm from '../../components/CreatePostForm';
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
@@ -39,6 +40,7 @@ export default function AdminPage() {
         Welcome, {user.email}!
       </Typography>
       <Typography>This is the protected admin dashboard.</Typography>
+      <CreatePostForm/>
       <Button onClick={handleSignOut} sx={{ mt: 2 }}>
         Sign Out
       </Button>
