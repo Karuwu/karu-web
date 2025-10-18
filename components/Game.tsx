@@ -114,57 +114,61 @@ const Game = () => {
     }
   }, [hitsoundVolume]);
 
-  // Start game
-  const startGame = () => {
-    if (!chartData) return;
-    setScore(0);
-    setPerfects(0);
-    setGoods(0);
-    setMisses(0);
-    setHits(0);
-    setCombo(0);
-    setHighestCombo(0);
-    const { notes, measureTimes } = parseNotes(chartData);
-    setNotes(notes);
-    setMeasureTimes(measureTimes);
-    setStartTime(Date.now());
-    setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
-    if (audioRef.current && chartData.audio) {
-      audioRef.current.play().catch((err) => console.error('Audio play failed:', err));
-    }
-    // Preload hitsounds to reduce playback delay
-    if (redHitsoundRef.current) {
-      redHitsoundRef.current.volume = 0;
-      redHitsoundRef.current.play().then(() => {
-        redHitsoundRef.current?.pause();
-        redHitsoundRef.current.volume = hitsoundVolume;
-      }).catch((err) => console.error('Red hitsound preload failed:', err));
-    }
-    if (blueHitsoundRef.current) {
-      blueHitsoundRef.current.volume = 0;
-      blueHitsoundRef.current.play().then(() => {
-        blueHitsoundRef.current?.pause();
-        blueHitsoundRef.current.volume = hitsoundVolume;
-      }).catch((err) => console.error('Blue hitsound preload failed:', err));
-    }
-    if (bigRedHitsoundRef.current) {
-      bigRedHitsoundRef.current.volume = 0;
-      bigRedHitsoundRef.current.play().then(() => {
-        bigRedHitsoundRef.current?.pause();
-        bigRedHitsoundRef.current.volume = hitsoundVolume;
-      }).catch((err) => console.error('Big red hitsound preload failed:', err));
-    }
-    if (bigBlueHitsoundRef.current) {
-      bigBlueHitsoundRef.current.volume = 0;
-      bigBlueHitsoundRef.current.play().then(() => {
-        bigBlueHitsoundRef.current?.pause();
-        bigBlueHitsoundRef.current.volume = hitsoundVolume;
-      }).catch((err) => console.error('Big blue hitsound preload failed:', err));
-    }
-    setPlaying(true);
-    setPaused(false);
-    setShowResults(false);
-  };
+// Start game
+const startGame = () => {
+  if (!chartData) return;
+  setScore(0);
+  setPerfects(0);
+  setGoods(0);
+  setMisses(0);
+  setHits(0);
+  setCombo(0);
+  setHighestCombo(0);
+  const { notes, measureTimes } = parseNotes(chartData);
+  setNotes(notes);
+  setMeasureTimes(measureTimes);
+  setStartTime(Date.now());
+  setLastKeyTimes({ f: 0, j: 0, d: 0, k: 0 });
+  if (audioRef.current && chartData.audio) {
+    audioRef.current.play().catch((err) => console.error('Audio play failed:', err));
+  }
+  // Preload hitsounds to reduce playback delay
+  if (redHitsoundRef.current) {
+    const redAudio = redHitsoundRef.current; // Capture non-null current
+    redAudio.volume = 0;
+    redAudio.play().then(() => {
+      redAudio.pause();
+      redAudio.volume = hitsoundVolume;
+    }).catch((err) => console.error('Red hitsound preload failed:', err));
+  }
+  if (blueHitsoundRef.current) {
+    const blueAudio = blueHitsoundRef.current; // Capture non-null current
+    blueAudio.volume = 0;
+    blueAudio.play().then(() => {
+      blueAudio.pause();
+      blueAudio.volume = hitsoundVolume;
+    }).catch((err) => console.error('Blue hitsound preload failed:', err));
+  }
+  if (bigRedHitsoundRef.current) {
+    const bigRedAudio = bigRedHitsoundRef.current; // Capture non-null current
+    bigRedAudio.volume = 0;
+    bigRedAudio.play().then(() => {
+      bigRedAudio.pause();
+      bigRedAudio.volume = hitsoundVolume;
+    }).catch((err) => console.error('Big red hitsound preload failed:', err));
+  }
+  if (bigBlueHitsoundRef.current) {
+    const bigBlueAudio = bigBlueHitsoundRef.current; // Capture non-null current
+    bigBlueAudio.volume = 0;
+    bigBlueAudio.play().then(() => {
+      bigBlueAudio.pause();
+      bigBlueAudio.volume = hitsoundVolume;
+    }).catch((err) => console.error('Big blue hitsound preload failed:', err));
+  }
+  setPlaying(true);
+  setPaused(false);
+  setShowResults(false);
+};
 
   // Reset game
   const resetGame = () => {

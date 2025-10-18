@@ -1,5 +1,10 @@
 import { Note, Chart } from './types';
 
+// Type guard to check if a value is a Note with a regular or big note type
+function isRegularOrBigNote(note: Note | null): note is Note & { type: 'red' | 'blue' | 'big_red' | 'big_blue' } {
+  return note !== null && ['red', 'blue', 'big_red', 'big_blue'].includes(note.type);
+}
+
 export const parseNotes = (data: Chart): { notes: Note[], measureTimes: number[] } => {
   let currentBpm = data.bpm;
   let balloonIndex = 0;
@@ -92,7 +97,7 @@ export const getCurrentTime = (
   paused: boolean,
   pauseTime: number,
   startTime: number,
-  audioRef: React.RefObject<HTMLAudioElement>
+  audioRef: React.RefObject<HTMLAudioElement | null>
 ) => {
   if (paused) return pauseTime;
   if (audioRef.current && !audioRef.current.paused) {
@@ -106,7 +111,7 @@ export const handleKeyDown = (
   playing: boolean,
   paused: boolean,
   notes: Note[],
-  setNotes: (notes: Note[]) => void,
+  setNotes: (notes: Note[] | ((prev: Note[]) => Note[])) => void,
   setScore: (score: number | ((prev: number) => number)) => void,
   setJudgment: (judgment: string) => void,
   setPerfects: (perfects: number | ((prev: number) => number)) => void,
@@ -116,10 +121,10 @@ export const handleKeyDown = (
   setCombo: (combo: number | ((prev: number) => number)) => void,
   setHighestCombo: (highestCombo: number | ((prev: number) => number)) => void,
   getCurrentTime: () => number,
-  redHitsoundRef: React.RefObject<HTMLAudioElement>,
-  blueHitsoundRef: React.RefObject<HTMLAudioElement>,
-  bigRedHitsoundRef: React.RefObject<HTMLAudioElement>,
-  bigBlueHitsoundRef: React.RefObject<HTMLAudioElement>,
+  redHitsoundRef: React.RefObject<HTMLAudioElement | null>,
+  blueHitsoundRef: React.RefObject<HTMLAudioElement | null>,
+  bigRedHitsoundRef: React.RefObject<HTMLAudioElement | null>,
+  bigBlueHitsoundRef: React.RefObject<HTMLAudioElement | null>,
   lastKeyTimes: { f: number; j: number; d: number; k: number }
 ) => {
   if (!playing || paused) return;
@@ -221,13 +226,19 @@ export const handleKeyDown = (
     }
   });
 
-  if (closestNote && (closestNote.type === 'red' || closestNote.type === 'blue' || closestNote.type === 'big_red' || closestNote.type === 'big_blue')) {
-    closestNote.hit = true;
+  // Handle regular and big notes with type guard
+  if (isRegularOrBigNote(closestNote)) {
+    // closestNote is now guaranteed to be Note with type 'red' | 'blue' | 'big_red' | 'big_blue'
+    const note: Note = closestNote; // Explicitly type as Note for consistency
+    note.hit = true; // Safe: note is guaranteed to be Note
     let newJudgment = 'miss';
     let scoreAdd = 0;
     if (minDiff < 25) {
       newJudgment = 'perfect';
-      scoreAdd = ((closestNote.type === 'big_red' && noteType === 'red' && isBigDouble) || (closestNote.type === 'big_blue' && noteType === 'blue' && isBigDouble)) ? 200 : 100;
+      scoreAdd = (
+        (note.type === 'big_red' && noteType === 'red' && isBigDouble) ||
+        (note.type === 'big_blue' && noteType === 'blue' && isBigDouble)
+      ) ? 200 : 100;
       setPerfects((prev) => prev + 1);
       setCombo((prev) => {
         const newCombo = prev + 1;
@@ -236,7 +247,10 @@ export const handleKeyDown = (
       });
     } else if (minDiff < 75) {
       newJudgment = 'good';
-      scoreAdd = ((closestNote.type === 'big_red' && noteType === 'red' && isBigDouble) || (closestNote.type === 'big_blue' && noteType === 'blue' && isBigDouble)) ? 100 : 50;
+      scoreAdd = (
+        (note.type === 'big_red' && noteType === 'red' && isBigDouble) ||
+        (note.type === 'big_blue' && noteType === 'blue' && isBigDouble)
+      ) ? 100 : 50;
       setGoods((prev) => prev + 1);
       setCombo((prev) => {
         const newCombo = prev + 1;
@@ -244,18 +258,27 @@ export const handleKeyDown = (
         return newCombo;
       });
     }
-    console.log(`Hit note: type=${closestNote.type}, time=${closestNote.time}, isBigDouble=${isBigDouble}, scoreAdd=${scoreAdd}, judgment=${newJudgment}`);
+    console.log(`Hit note: type=${note.type}, time=${note.time}, isBigDouble=${isBigDouble}, scoreAdd=${scoreAdd}, judgment=${newJudgment}`);
     setJudgment(newJudgment);
     setScore((prev) => prev + scoreAdd);
     setHits((prev) => prev + 1);
     setTimeout(() => setJudgment(''), 500);
   }
 
-  if (noteIndex !== null && closestNote && (closestNote.type === 'drumroll' || closestNote.type === 'balloon' || closestNote.hit)) {
-    setNotes((prevNotes) => {
-      const newNotes = [...prevNotes];
-      newNotes[noteIndex] = { ...closestNote };
-      return newNotes;
-    });
+  // Handle note updates for drumroll, balloon, or hit notes
+  if (noteIndex !== null && closestNote !== null) {
+    const index: number = noteIndex; // Narrow noteIndex to number
+    const note: Note = closestNote; // Narrow closestNote to Note
+    if (
+      note.type === 'drumroll' ||
+      note.type === 'balloon' ||
+      note.hit
+    ) {
+      setNotes((prevNotes) => {
+        const newNotes = [...prevNotes];
+        newNotes[index] = { ...note }; // Safe: index is number, note is Note
+        return newNotes;
+      });
+    }
   }
 };

@@ -15,7 +15,7 @@ interface GameCanvasProps {
   setPlaying: (playing: boolean) => void;
   setPaused: (paused: boolean) => void;
   setShowResults: (showResults: boolean) => void;
-  setNotes: (notes: Note[]) => void;
+  setNotes: (notes: Note[] | ((prev: Note[]) => Note[])) => void; // Updated type
   getCurrentTime: () => number;
   songName: string | undefined;
   showResults: boolean;
