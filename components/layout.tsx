@@ -15,19 +15,19 @@ export default function RootLayout({ children }: LayoutProps) {
               <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
                 Home
               </Link>
-              <span>//</span>
+              <span>{'//'}</span>
               <Link href="/score_list" className="text-blue-600 hover:text-blue-800 font-medium">
                 Score List
               </Link>
-              <span>//</span>
+              <span>{'//'}</span>
               <Link href="/blog" className="text-blue-600 hover:text-blue-800 font-medium">
                 Blog
               </Link>
-              <span>//</span>
+              <span>{'//'}</span>
               <Link href="/test" className="text-blue-600 hover:text-blue-800 font-medium">
                 Test
               </Link>
-              <span>//</span>
+              <span>{'//'}</span>
               <Link href="/test2" className="text-blue-600 hover:text-blue-800 font-medium">
                 Test2
               </Link>
@@ -38,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps) {
         <main suppressHydrationWarning className="px-4">
           {children}
         </main>
+
     </html>
   );
 }
