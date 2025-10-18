@@ -89,7 +89,7 @@ const Game = () => {
         })
         .catch((err) => console.error('Failed to load chart:', err));
     }
-  }, [selectedChart, songVolume]);
+  }, [selectedChart]);
 
   // Update song volume
   useEffect(() => {
@@ -294,41 +294,67 @@ const startGame = () => {
     );
   }
 
-  if (showResults) {
-    const accuracy = perfects + goods + misses > 0 
-      ? ((perfects + 0.5 * goods) / (perfects + goods + misses) * 100).toFixed(2)
-      : "0.00";
-    return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <h1>Taiko Rhythm Game - Results</h1>
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
-          <div style={{ width: '50%', fontSize: '24px', textAlign: 'left' }}>
-            <p>Score: {score}</p>
-            <p>Perfects: {perfects}</p>
-            <p>Goods: {goods}</p>
-            <p>Misses: {misses}</p>
-            <p>Accuracy: {accuracy}%</p>
+if (showResults) {
+  const accuracy = perfects + goods + misses > 0 
+    ? ((perfects + 0.5 * goods) / (perfects + goods + misses) * 100).toFixed(2)
+    : "0.00";
+  
+  // Check for full combo (no misses)
+  const isFullCombo = misses === 0 && (perfects + goods) > 0;
+  
+  return (
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>{chartData?.name || 'Song'} - Results</h1>
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+        <div style={{ width: '50%', fontSize: '24px', textAlign: 'left' }}>
+          {/* Score and Icon Row - Larger */}
+          
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+
+            {isFullCombo ? (
+              <img 
+                src="/images/fc.png" 
+                alt="Full Combo" 
+                style={{ width: '50px', height: '50px' }}
+              />
+            ) : (
+              <img 
+                src="/images/clear.png" 
+                alt="Not Full Combo" 
+                style={{ width: '50px', height: '50px' }}
+              />
+            )}
+
+            <span style={{ fontSize: '32px', fontWeight: 'bold', marginRight: '40px' }}>
+              Score: {score}
+            </span>
+            
           </div>
-          <div style={{ width: '50%', fontSize: '24px', textAlign: 'left' }}>
-            <p>Hits: {hits}</p>
-            <p>Highest Combo: {highestCombo}</p>
-          </div>
+          <p>Perfects: {perfects}</p>
+          <p>Goods: {goods}</p>
+          <p>Misses: {misses}</p>
+          <p>Accuracy: {accuracy}%</p>
         </div>
-        <button
-          onClick={() => setSelectedChart(null)}
-          style={{ margin: '10px', padding: '10px 20px', fontSize: '16px' }}
-        >
-          Back to Song Select
-        </button>
-        <button
-          onClick={resetGameForReplay}
-          style={{ margin: '10px', padding: '10px 20px', fontSize: '16px' }}
-        >
-          Replay
-        </button>
+        <div style={{ width: '50%', fontSize: '24px', textAlign: 'left', marginTop: '80px' }}>
+          <p>Hits: {hits}</p>
+          <p>Highest Combo: {highestCombo}</p>
+        </div>
       </div>
-    );
-  }
+      <button
+        onClick={() => setSelectedChart(null)}
+        style={{ margin: '10px', padding: '10px 20px', fontSize: '16px' }}
+      >
+        Back to Song Select
+      </button>
+      <button
+        onClick={resetGameForReplay}
+        style={{ margin: '10px', padding: '10px 20px', fontSize: '16px' }}
+      >
+        Replay
+      </button>
+    </div>
+  );
+}
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
