@@ -2,11 +2,19 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { getBlogPosts } from '../lib/BlogPosts';
+import {getGlobalPosts} from '../lib/BlogPosts';
 import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Timestamp } from 'firebase-admin/firestore';
 
 export default async function Home() {
-  const blogPosts = await getBlogPosts();
+  const blogPosts = await getGlobalPosts();
+
+  const formatDate = (createdAt: Timestamp | string) => {
+    if (createdAt instanceof Timestamp) {
+      return createdAt.toDate().toLocaleDateString();
+    }
+    return createdAt || 'Recent';
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -47,12 +55,12 @@ export default async function Home() {
           </Box>
         </Card>
 
-        {/* Blog Posts Section */}
-        {blogPosts.length > 0 && (
-          <Card sx={{ p: 3 }}>
-            <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-              Latest Blog Posts
-            </Typography>
+        {/* Featured Posts Section */}
+        <Card sx={{ p: 3, mt: 4 }}>
+          <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+            Featured Posts
+          </Typography>
+          {blogPosts.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {blogPosts.map((post) => (
                 <Card key={post.id} variant="outlined" sx={{ p: 2 }}>
@@ -61,7 +69,7 @@ export default async function Home() {
                       {post.title}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                      {post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Recent'}
+                      {formatDate(post.createdAt)}
                     </Typography>
                     {post.excerpt && (
                       <Typography variant="body1" color="text.secondary">
@@ -72,17 +80,12 @@ export default async function Home() {
                 </Card>
               ))}
             </Box>
-          </Card>
-        )}
-
-        {/* No Posts Message */}
-        {blogPosts.length === 0 && (
-          <Card sx={{ p: 3, textAlign: 'center' }}>
+          ) : (
             <Typography variant="h6" color="text.secondary">
-              No blog posts yet. Check back soon!
+              No featured posts yet. Check back soon!
             </Typography>
-          </Card>
-        )}
+          )}
+        </Card>
       </Box>
 
       {/* Footer */}

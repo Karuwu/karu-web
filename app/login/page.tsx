@@ -1,62 +1,74 @@
-'use client'; // This is CRITICAL
+'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../lib/firebase-client'; // Use the CLIENT auth
-import { Button, TextField, Container, Typography, Box } from '@mui/material';
+import { Box, TextField, Button, Typography, CircularProgress, Alert } from '@mui/material';
+import Link from 'next/link';
+import { auth } from '../../lib/firebase-client';
+import { useAuth } from '../../components/AuthProvider';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent form from refreshing the page
-    setError(null);
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || user) {
+    return <CircularProgress sx={{ display: 'block', mx: 'auto', mt: 10 }} />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      // Try to sign in
       await signInWithEmailAndPassword(auth, email, password);
-      // On success, redirect to the admin page
-      router.push('/admin');
-    } catch (err) {
-      setError('Failed to log in. Check your email and password.');
-      console.error(err);
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to log in. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="xs">
-      <Box component="form" onSubmit={handleLogin} sx={{ mt: 8 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Admin Login
-        </Typography>
+    <Box sx={{ maxWidth: 400, mx: 'auto', p: 3 }}>
+      <Typography variant="h5" gutterBottom>Log In</Typography>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
           label="Email"
           type="email"
-          fullWidth
-          margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
+          fullWidth
         />
         <TextField
           label="Password"
           type="password"
-          fullWidth
-          margin="normal"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
+          fullWidth
         />
-        {error && (
-          <Typography color="error" sx={{ my: 2 }}>
-            {error}
-          </Typography>
-        )}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 3 }}>
-          Login
+        <Button type="submit" variant="contained" disabled={loading} fullWidth>
+          {loading ? <CircularProgress size={24} /> : 'Log In'}
         </Button>
+        <Typography>
+          Don’t have an account? <Link href="/register" style={{ color: '#1976d2' }}>Register here</Link>
+        </Typography>
       </Box>
-    </Container>
+    </Box>
   );
 }

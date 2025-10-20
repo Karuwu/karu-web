@@ -1,4 +1,4 @@
-// File: lib/data.ts
+// File: lib/topScores.ts
 import { db } from './firebase';
 import { Timestamp } from 'firebase-admin/firestore';
 
@@ -13,31 +13,41 @@ export interface Score {
   isFullCombo: boolean;
   hits?: number;
   maxCombo?: number;
-  dateAchieved?: Timestamp | string;
+  dateAchieved?: Timestamp;
+  userId: string;
 }
 
-export const getTopScores = async (): Promise<Score[]> => {
+export const getTopScores = async (uid?: string): Promise<Score[]> => {
   if (!db) {
     console.error('Firebase database not initialized');
     return [];
   }
 
+  if (!uid) {
+    console.log('No user ID provided, returning empty scores');
+    return [];
+  }
+
   try {
-    console.log('Querying Firestore collection: scores');
-    const snapshot = await db.collection('scores').get();
+    console.log('Querying Firestore subcollection: users/%s/scores', uid);
+    const snapshot = await db.collection(`users/${uid}/scores`).get();
     if (snapshot.empty) {
-      console.log('No documents found in "scores" collection');
+      console.log('No documents found in "scores" subcollection for user:', uid);
       return [];
     }
     const scores: Score[] = snapshot.docs.map(doc => ({
       id: doc.id,
-      song: doc.data().Song as string,
-      difficulty: doc.data().Difficulty as string,
-      score: doc.data().Score as number,
-      greats: doc.data().Greats as number,
-      goods: doc.data().Goods as number,
-      bads: doc.data().Bads as number,
+      song: doc.data().song as string,
+      difficulty: doc.data().difficulty as string,
+      score: doc.data().score as number,
+      greats: doc.data().greats as number,
+      goods: doc.data().goods as number,
+      bads: doc.data().bads as number,
       isFullCombo: doc.data().isFullCombo as boolean,
+      hits: doc.data().hits as number,
+      maxCombo: doc.data().maxCombo as number,
+      dateAchieved: doc.data().dateAchieved as Timestamp,
+      userId: uid,
     }));
     return scores;
   } catch (error) {
@@ -50,32 +60,32 @@ export const getTopScores = async (): Promise<Score[]> => {
   }
 };
 
-export const getScoreById = async (id: string): Promise<Score | null> => {
+export const getScoreById = async (uid: string, id: string): Promise<Score | null> => {
   if (!db) {
     console.error('Firebase database not initialized');
     return null;
   }
   try {
-    console.log('Fetching score with ID:', id);
-    const doc = await db.collection('scores').doc(id).get();
+    console.log('Fetching score with ID:', id, 'for user:', uid);
+    const doc = await db.collection(`users/${uid}/scores`).doc(id).get();
     if (!doc.exists) {
-      console.log('No score found for ID:', id);
+      console.log('No score found for ID:', id, 'user:', uid);
       return null;
     }
     const data = doc.data();
-    console.log('Raw Firestore data:', data);
     const score: Score = {
       id: doc.id,
-      song: data?.Song as string,
-      difficulty: data?.Difficulty as string,
-      score: data?.Score as number,
-      greats: data?.Greats as number,
-      goods: data?.Goods as number,
-      bads: data?.Bads as number,
+      song: data?.song as string,
+      difficulty: data?.difficulty as string,
+      score: data?.score as number,
+      greats: data?.greats as number,
+      goods: data?.goods as number,
+      bads: data?.bads as number,
       isFullCombo: data?.isFullCombo as boolean,
-      hits: data?.Hits as number,
-      maxCombo: data?.MaxCombo as number,
-      dateAchieved: data?.DateAchieved as Timestamp | string,
+      hits: data?.hits as number,
+      maxCombo: data?.maxCombo as number,
+      dateAchieved: data?.dateAchieved as Timestamp,
+      userId: uid,
     };
     console.log('Mapped score:', score);
     return score;

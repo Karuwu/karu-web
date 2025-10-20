@@ -1,19 +1,38 @@
 // File: app/scores/[id]/page.tsx
 import { getScoreById } from '../../../lib/topScores';
 import { notFound } from 'next/navigation';
+import { db } from '../../../lib/firebase';
 import { Container, Paper, Typography, Box, Avatar, Link } from '@mui/material';
 import styles from '../../../components/ScoreList.module.css';
 import { Score } from '../../../lib/topScores';
 
-export default async function ScoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  console.log('params.id:', id);
+export default async function ScoreDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
-  const score = await getScoreById(id);
-  console.log('Fetched score:', score);
-
-  if (!score) {
+  // Find score and its user
+  const userSnapshot = await db.collectionGroup('scores').where('id', '==', id).get();
+  if (userSnapshot.empty) {
     notFound();
+  }
+
+  const scoreDoc = userSnapshot.docs[0];
+  const score = scoreDoc.data() as Score;
+  const userId = score.userId;
+
+  const userDoc = await db.collection('users').doc(userId).get();
+  if (!userDoc.exists) {
+    notFound();
+  }
+
+  const username = userDoc.data()?.username || 'Unknown';
+  const isPrivate = userDoc.data()?.isPrivate || false;
+
+  if (isPrivate) {
+    return (
+      <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
+        <Typography variant="h5" gutterBottom>This user's profile is private</Typography>
+      </Box>
+    );
   }
 
   const fmt = (n?: number) => (typeof n === 'number' ? n.toLocaleString() : '0');
@@ -39,9 +58,8 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ id
     return '';
   };
 
-  const formatDate = (date?: string | { seconds: number; nanoseconds: number }) => {
+  const formatDate = (date?: { seconds: number; nanoseconds: number }) => {
     if (!date) return 'Unknown';
-    if (typeof date === 'string') return date;
     const d = new Date(date.seconds * 1000);
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
@@ -62,7 +80,6 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ id
           <Typography variant="h3" component="h1" fontWeight={700} marginLeft={2}>
             {score.song}
           </Typography>
-
         </Box>
         <Box display="flex" alignItems="center" mb={2}>
           <Avatar
@@ -100,11 +117,11 @@ export default async function ScoreDetailPage({ params }: { params: Promise<{ id
           Date Achieved: {formatDate(score.dateAchieved)}
         </Typography>
       </Paper>
-              <Box mt={2}>
-          <Link href="/score_list" sx={{ color: '#1976d2', textDecoration: 'none', fontSize: '1rem' }}>
-            ← Back to Scores
-          </Link>
-        </Box>
+      <Box mt={2}>
+        <Link href={`/score_list/${username}`} sx={{ color: '#1976d2', textDecoration: 'none', fontSize: '1rem' }}>
+          ← Back to {username}'s Scores
+        </Link>
+      </Box>
     </Container>
   );
 }

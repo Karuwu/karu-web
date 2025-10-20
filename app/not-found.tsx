@@ -19,8 +19,8 @@ export default function NotFound() {
           priority
         />
       </div>
-      <Link href="/score_list" className="text-[#1976d2] hover:underline mt-6">
-        Back to Scores
+      <Link href="/" className="text-[#1976d2] hover:underline mt-6">
+        Back to Home
       </Link>
     </main>
   );
