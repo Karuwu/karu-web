@@ -24,7 +24,7 @@ export default async function UserScoreListPage({ params, searchParams }: { para
   if (userData.isPrivate) {
     return (
       <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
-        <Typography variant="h5" gutterBottom>This user's profile is private</Typography>
+        <Typography variant="h5" gutterBottom>This user&apos;s profile is private</Typography>
       </Box>
     );
   }
@@ -40,7 +40,7 @@ export default async function UserScoreListPage({ params, searchParams }: { para
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Typography variant="h5" gutterBottom>{username}'s Scores</Typography>
+      <Typography variant="h5" gutterBottom>{username}&apos;s Scores</Typography>
       <ScoreListControls userId={uid} idToken={idToken} />
       <ScoreList scores={scores} />
     </Box>

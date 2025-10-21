@@ -33,7 +33,7 @@ export default async function UserBlogPage({ params, searchParams }: { params: {
   if (userData.isPrivate) {
     return (
       <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
-        <Typography variant="h5" gutterBottom>This user's profile is private</Typography>
+        <Typography variant="h5" gutterBottom>This user&apos;s profile is private</Typography>
       </Box>
     );
   }
@@ -49,7 +49,7 @@ export default async function UserBlogPage({ params, searchParams }: { params: {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
-      <Typography variant="h5" gutterBottom>{username}'s Blog Posts</Typography>
+      <Typography variant="h5" gutterBottom>{username}&apos;s Blog Posts</Typography>
       <BlogControls userId={uid} idToken={idToken} />
       {posts.length > 0 ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

@@ -30,7 +30,7 @@ export default async function ScoreDetailPage({ params }: { params: { id: string
   if (isPrivate) {
     return (
       <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
-        <Typography variant="h5" gutterBottom>This user's profile is private</Typography>
+        <Typography variant="h5" gutterBottom>This user&apos;s profile is private</Typography>
       </Box>
     );
   }
@@ -119,7 +119,7 @@ export default async function ScoreDetailPage({ params }: { params: { id: string
       </Paper>
       <Box mt={2}>
         <Link href={`/score_list/${username}`} sx={{ color: '#1976d2', textDecoration: 'none', fontSize: '1rem' }}>
-          ← Back to {username}'s Scores
+          ← Back to {username}&apos;s Scores
         </Link>
       </Box>
     </Container>

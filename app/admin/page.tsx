@@ -39,37 +39,28 @@ export default function AdminPage() {
           console.log('AdminPage: checkAdmin result:', adminStatus);
           setIsAdmin(adminStatus);
           setLoadingAdmin(false);
+
+          if (!adminStatus) {
+            console.log('AdminPage: Not admin, redirecting to /admin-error');
+            router.push('/admin-error');
+          }
         } catch (err: any) {
           console.error('AdminPage: Error checking admin status:', err);
           setError(err.message || 'Failed to verify admin status');
           setLoadingAdmin(false);
+          router.push('/admin-error');
         }
       }).catch(err => {
         console.error('AdminPage: Error getting idToken:', err);
         setError('Failed to authenticate');
         setLoadingAdmin(false);
+        router.push('/admin-error');
       });
     }
   }, [user, authLoading, router]);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      console.log('AdminPage: Signed out successfully');
-      router.push('/');
-    } catch (error) {
-      console.error('AdminPage: Error signing out:', error);
-    }
-  };
-
   if (authLoading || loadingAdmin || isAdmin === null) {
     return <CircularProgress sx={{ display: 'block', margin: 'auto', mt: 10 }} />;
-  }
-
-  if (!user || !isAdmin) {
-    console.log('AdminPage: Not admin, redirecting to /admin-error');
-    router.push('/admin-error');
-    return null;
   }
 
   if (error) {
@@ -81,6 +72,10 @@ export default function AdminPage() {
     );
   }
 
+  if (!user || !isAdmin) {
+    return null; // Redirect handled in useEffect
+  }
+
   return (
     <Container>
       <Typography variant="h4" sx={{ mt: 4 }}>
@@ -88,7 +83,7 @@ export default function AdminPage() {
       </Typography>
       <Typography>This is the protected admin dashboard.</Typography>
       <CreatePostForm />
-      <Button onClick={handleSignOut} sx={{ mt: 2 }}>
+      <Button onClick={() => signOut(auth).then(() => router.push('/')).catch(err => console.error('AdminPage: Error signing out:', err))} sx={{ mt: 2 }}>
         Sign Out
       </Button>
     </Container>
