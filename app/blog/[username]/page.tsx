@@ -1,4 +1,4 @@
-import { Box, Typography, Card, CardContent, CardMedia } from '@mui/material';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { db } from '../../../lib/firebase';
 import { fetchBlogPosts } from '../../../app/actions';
 import BlogControls from '../../../components/BlogControls';
@@ -7,7 +7,7 @@ interface BlogPost {
   id: string;
   title: string;
   content: string;
-  createdAt: any;
+  createdAt: string;
   excerpt?: string;
   userId: string;
   imageUrls?: string[];
@@ -39,12 +39,11 @@ export default async function UserBlogPage({ params, searchParams }: { params: {
   }
 
   let posts: BlogPost[] = [];
-  if (idToken) {
-    try {
-      posts = await fetchBlogPosts(uid, idToken);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
+  try {
+    posts = await fetchBlogPosts(uid, idToken);
+    console.log('UserBlogPage: Fetched posts:', posts);
+  } catch (error) {
+    console.error('UserBlogPage: Error fetching posts:', error);
   }
 
   return (
@@ -58,22 +57,9 @@ export default async function UserBlogPage({ params, searchParams }: { params: {
               <CardContent>
                 <Typography variant="h6">{post.title}</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {post.createdAt?.toDate().toLocaleDateString() || 'Unknown'}
+                  {new Date(post.createdAt).toLocaleDateString() || 'Recent'}
                 </Typography>
-                <Typography variant="body1">{post.excerpt}</Typography>
-                {post.imageUrls && post.imageUrls.length > 0 && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                    {post.imageUrls.map((url, index) => (
-                      <CardMedia
-                        key={index}
-                        component="img"
-                        image={url}
-                        alt={`Blog post image ${index + 1}`}
-                        sx={{ width: 100, height: 100, objectFit: 'cover' }}
-                      />
-                    ))}
-                  </Box>
-                )}
+                <Typography variant="body1">{post.content ? post.content.substring(0, 200) + '...' : 'No content available.'}</Typography>
               </CardContent>
             </Card>
           ))}

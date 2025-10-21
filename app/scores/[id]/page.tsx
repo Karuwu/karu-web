@@ -9,17 +9,12 @@ import { Score } from '../../../lib/topScores';
 export default async function ScoreDetailPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  // Find score and its user
-  const userSnapshot = await db.collectionGroup('scores').where('id', '==', id).get();
-  if (userSnapshot.empty) {
+  const score = await getScoreById(id);
+  if (!score) {
     notFound();
   }
 
-  const scoreDoc = userSnapshot.docs[0];
-  const score = scoreDoc.data() as Score;
-  const userId = score.userId;
-
-  const userDoc = await db.collection('users').doc(userId).get();
+  const userDoc = await db.collection('users').doc(score.userId).get();
   if (!userDoc.exists) {
     notFound();
   }
@@ -58,10 +53,14 @@ export default async function ScoreDetailPage({ params }: { params: { id: string
     return '';
   };
 
-  const formatDate = (date?: { seconds: number; nanoseconds: number }) => {
+  const formatDate = (date?: string) => {
     if (!date) return 'Unknown';
-    const d = new Date(date.seconds * 1000);
-    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    try {
+      return new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      console.error('ScoreDetailPage: Invalid date format for dateAchieved:', date);
+      return 'Unknown';
+    }
   };
 
   return (

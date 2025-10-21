@@ -93,7 +93,6 @@ export default function RegisterPage() {
       router.push('/');
     } catch (err) {
       console.error('RegisterPage: Registration failed:', err);
-      setError(err.message || 'Failed to register. Please check your credentials or Firebase configuration.');
     } finally {
       setLoading(false);
     }

@@ -53,7 +53,6 @@ export default function CreatePostForm({ onSuccess, hideGlobal = false }: Create
         content,
         isGlobal: hideGlobal ? false : isGlobal,
         idToken,
-        images,
       });
 
       setMessage('Post created successfully!');
@@ -99,16 +98,6 @@ export default function CreatePostForm({ onSuccess, hideGlobal = false }: Create
         onChange={(e) => setContent(e.target.value)}
         required
       />
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleImageChange}
-        style={{ marginTop: '16px', marginBottom: '16px' }}
-      />
-      <Typography variant="caption" display="block" gutterBottom>
-        {images.length} of 2 images selected
-      </Typography>
       {!hideGlobal && (
         <FormControlLabel
           control={<Checkbox checked={isGlobal} onChange={(e) => setIsGlobal(e.target.checked)} />}

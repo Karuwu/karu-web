@@ -2,18 +2,35 @@
 
 import React from 'react';
 import Image from 'next/image';
-import {getGlobalPosts} from '../lib/BlogPosts';
+import { getGlobalPosts } from '../lib/BlogPosts';
 import { Box, Typography, Card, CardContent } from '@mui/material';
-import { Timestamp } from 'firebase-admin/firestore';
 
 export default async function Home() {
   const blogPosts = await getGlobalPosts();
 
-  const formatDate = (createdAt: Timestamp | string) => {
-    if (createdAt instanceof Timestamp) {
-      return createdAt.toDate().toLocaleDateString();
+  const formatDate = (createdAt: string | undefined) => {
+    if (!createdAt) {
+      console.warn('Home: createdAt is undefined or empty');
+      return 'Unknown';
     }
-    return createdAt || 'Recent';
+    try {
+      const date = new Date(createdAt);
+      if (isNaN(date.getTime())) {
+        console.warn('Home: Invalid date format for createdAt:', createdAt);
+        return 'Unknown';
+      }
+     return date.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch (e) {
+      console.error('Home: Error parsing date for createdAt:', createdAt, e);
+      return 'Unknown';
+    }
   };
 
   return (
@@ -71,11 +88,9 @@ export default async function Home() {
                     <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
                       {formatDate(post.createdAt)}
                     </Typography>
-                    {post.excerpt && (
-                      <Typography variant="body1" color="text.secondary">
-                        {post.excerpt}
-                      </Typography>
-                    )}
+                    <Typography variant="body1" color="text.secondary">
+                      {post.content ? post.content.substring(0, 200) + '...' : 'No content available.'}
+                    </Typography>
                   </CardContent>
                 </Card>
               ))}

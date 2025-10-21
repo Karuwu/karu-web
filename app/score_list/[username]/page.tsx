@@ -4,6 +4,21 @@ import { fetchTopScores } from '../../../app/actions';
 import ScoreList from '../../../components/ScoreList';
 import ScoreListControls from '../../../components/ScoreListControls';
 
+interface Score {
+  id: string;
+  song: string;
+  difficulty: string;
+  score: number;
+  greats: number;
+  goods: number;
+  bads: number;
+  isFullCombo: boolean;
+  hits?: number;
+  maxCombo?: number;
+  dateAchieved: string;
+  userId: string;
+}
+
 export default async function UserScoreListPage({ params, searchParams }: { params: { username: string }, searchParams: { idToken?: string } }) {
   const { username } = params;
   const idToken = searchParams.idToken || '';
@@ -29,13 +44,12 @@ export default async function UserScoreListPage({ params, searchParams }: { para
     );
   }
 
-  let scores: any[] = [];
-  if (idToken) {
-    try {
-      scores = await fetchTopScores(uid, idToken);
-    } catch (error) {
-      console.error('Error fetching scores:', error);
-    }
+  let scores: Score[] = [];
+  try {
+    scores = await fetchTopScores(uid, idToken);
+    console.log('UserScoreListPage: Fetched scores:', scores);
+  } catch (error) {
+    console.error('UserScoreListPage: Error fetching scores:', error);
   }
 
   return (

@@ -38,12 +38,8 @@ export default function LoginPage() {
       console.log('LoginPage: Login successful, user:', userCredential.user.uid);
       router.push('/');
     } catch (err: any) {
-      console.error('LoginPage: Login failed:', {
-        message: err.message || 'Unknown error',
-        code: err.code || 'No code',
-        details: err.details || 'No details',
-        stack: err.stack || 'No stack',
-      });
+      console.error('LoginPage: Login failed:', err);
+      console.error('LoginPage: Login failed (string):', err.toString());
       setError(err.message || 'Failed to log in. Please check your credentials or Firebase configuration.');
     } finally {
       setLoading(false);

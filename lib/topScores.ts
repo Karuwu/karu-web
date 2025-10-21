@@ -13,7 +13,7 @@ export interface Score {
   isFullCombo: boolean;
   hits?: number;
   maxCombo?: number;
-  dateAchieved?: Timestamp;
+  dateAchieved?: string;
   userId: string;
 }
 
@@ -46,7 +46,7 @@ export const getTopScores = async (uid?: string): Promise<Score[]> => {
       isFullCombo: doc.data().isFullCombo as boolean,
       hits: doc.data().hits as number,
       maxCombo: doc.data().maxCombo as number,
-      dateAchieved: doc.data().dateAchieved as Timestamp,
+      dateAchieved: doc.data().dateAchieved as string,
       userId: uid,
     }));
     return scores;
@@ -60,40 +60,35 @@ export const getTopScores = async (uid?: string): Promise<Score[]> => {
   }
 };
 
-export const getScoreById = async (uid: string, id: string): Promise<Score | null> => {
-  if (!db) {
-    console.error('Firebase database not initialized');
-    return null;
-  }
+export async function getScoreById(id: string): Promise<Score | null> {
   try {
-    console.log('Fetching score with ID:', id, 'for user:', uid);
-    const doc = await db.collection(`users/${uid}/scores`).doc(id).get();
-    if (!doc.exists) {
-      console.log('No score found for ID:', id, 'user:', uid);
-      return null;
+    const usersSnapshot = await db.collection('users').get();
+    for (const userDoc of usersSnapshot.docs) {
+      const scoreSnapshot = await db.collection(`users/${userDoc.id}/scores`).doc(id).get();
+      if (scoreSnapshot.exists) {
+        const data = scoreSnapshot.data();
+        return {
+          id: scoreSnapshot.id,
+          song: data?.song as string,
+          difficulty: data?.difficulty as string,
+          score: data?.score as number,
+          greats: data?.greats as number,
+          goods: data?.goods as number,
+          bads: data?.bads as number,
+          isFullCombo: data?.isFullCombo as boolean,
+          hits: data?.hits as number | undefined,
+          maxCombo: data?.maxCombo as number | undefined,
+          dateAchieved: data?.dateAchieved ? (data.dateAchieved as Timestamp).toDate().toISOString() : '',
+          userId: data?.userId as string,
+        };
+      }
     }
-    const data = doc.data();
-    const score: Score = {
-      id: doc.id,
-      song: data?.song as string,
-      difficulty: data?.difficulty as string,
-      score: data?.score as number,
-      greats: data?.greats as number,
-      goods: data?.goods as number,
-      bads: data?.bads as number,
-      isFullCombo: data?.isFullCombo as boolean,
-      hits: data?.hits as number,
-      maxCombo: data?.maxCombo as number,
-      dateAchieved: data?.dateAchieved as Timestamp,
-      userId: uid,
-    };
-    console.log('Mapped score:', score);
-    return score;
-  } catch (error) {
-    console.error('Error fetching score:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any).code,
-      details: (error as any).details,
+    return null;
+  } catch (error: any) {
+    console.error('getScoreById: Error fetching score:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
     });
     return null;
   }

@@ -8,7 +8,6 @@ interface CreatePostParams {
   content: string;
   isGlobal: boolean;
   idToken: string;
-  images?: File[];
 }
 
 interface CreateScoreParams {
@@ -28,7 +27,7 @@ interface BlogPost {
   id: string;
   title: string;
   content: string;
-  createdAt: Timestamp;
+  createdAt: string;
   excerpt?: string;
   userId: string;
   imageUrls?: string[];
@@ -45,7 +44,7 @@ interface Score {
   isFullCombo: boolean;
   hits?: number;
   maxCombo?: number;
-  dateAchieved?: Timestamp;
+  dateAchieved: string;
   userId: string;
 }
 
@@ -69,7 +68,7 @@ export async function createPost({ title, content, isGlobal, idToken }: CreatePo
       content,
       createdAt: Timestamp.now(),
       userId: uid,
-      imageUrls: [], // Disabled image uploads due to Spark plan
+      imageUrls: [],
     };
 
     if (isGlobal) {
@@ -131,89 +130,111 @@ export async function createScore({
   }
 }
 
-export async function fetchTopScores(uid: string, idToken: string) {
+export async function fetchTopScores(uid: string, idToken?: string) {
   try {
-    await auth.verifyIdToken(idToken);
+    if (idToken) {
+      await auth.verifyIdToken(idToken);
+    }
     const snapshot = await db.collection(`users/${uid}/scores`).get();
     if (snapshot.empty) {
+      console.log('fetchTopScores: No scores found for UID:', uid);
       return [];
     }
-    const scores: Score[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      song: doc.data().song as string,
-      difficulty: doc.data().difficulty as string,
-      score: doc.data().score as number,
-      greats: doc.data().greats as number,
-      goods: doc.data().goods as number,
-      bads: doc.data().bads as number,
-      isFullCombo: doc.data().isFullCombo as boolean,
-      hits: doc.data().hits as number | undefined,
-      maxCombo: doc.data().maxCombo as number | undefined,
-      dateAchieved: doc.data().dateAchieved as Timestamp | undefined,
-      userId: uid,
-    }));
+    const scores: Score[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        song: data.song as string,
+        difficulty: data.difficulty as string,
+        score: data.score as number,
+        greats: data.greats as number,
+        goods: data.goods as number,
+        bads: data.bads as number,
+        isFullCombo: data.isFullCombo as boolean,
+        hits: data.hits as number | undefined,
+        maxCombo: data.maxCombo as number | undefined,
+        dateAchieved: data.dateAchieved ? (data.dateAchieved as Timestamp).toDate().toISOString() : '',
+        userId: uid,
+      };
+    });
+    console.log('fetchTopScores: Fetched scores:', scores);
     return scores;
   } catch (error: any) {
-    console.error('Error fetching scores:', {
+    console.error('fetchTopScores: Error fetching scores:', {
       message: error.message,
       code: error.code,
+      stack: error.stack,
     });
     throw new Error(error.message || 'Failed to fetch scores');
   }
 }
 
-export async function fetchBlogPosts(uid: string, idToken: string) {
+export async function fetchBlogPosts(uid: string, idToken?: string) {
   try {
-    await auth.verifyIdToken(idToken);
+    if (idToken) {
+      await auth.verifyIdToken(idToken);
+    }
     const snapshot = await db.collection(`users/${uid}/posts`).get();
     if (snapshot.empty) {
+      console.log('fetchBlogPosts: No posts found for UID:', uid);
       return [];
     }
-    const posts: BlogPost[] = snapshot.docs.map(doc => ({
-      id: doc.id,
-      title: doc.data().title as string,
-      content: doc.data().content as string,
-      createdAt: doc.data().createdAt as Timestamp,
-      excerpt: doc.data().excerpt as string | undefined,
-      userId: uid,
-      imageUrls: doc.data().imageUrls as string[] | undefined,
-    }));
+    const posts: BlogPost[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title as string,
+        content: data.content as string,
+        createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate().toISOString() : '',
+        excerpt: data.excerpt as string | undefined,
+        userId: uid,
+        imageUrls: data.imageUrls as string[] | undefined,
+      };
+    });
+    console.log('fetchBlogPosts: Fetched posts:', posts);
     return posts;
   } catch (error: any) {
-    console.error('Error fetching posts:', {
+    console.error('fetchBlogPosts: Error fetching posts:', {
       message: error.message,
       code: error.code,
+      stack: error.stack,
     });
     throw new Error(error.message || 'Failed to fetch posts');
   }
 }
 
 export async function fetchGlobalPosts(idToken?: string) {
-  if (idToken) {
-    try {
+  try {
+    if (idToken) {
       await auth.verifyIdToken(idToken);
-    } catch (error: any) {
-      console.error('Error verifying token for global posts:', {
-        message: error.message,
-        code: error.code,
-      });
-      throw new Error(error.message || 'Failed to verify token');
     }
+    const snapshot = await db.collection('global_posts').get();
+    if (snapshot.empty) {
+      console.log('fetchGlobalPosts: No global posts found');
+      return [];
+    }
+    const posts: BlogPost[] = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        title: data.title as string,
+        content: data.content as string,
+        createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate().toISOString() : '',
+        excerpt: data.excerpt as string | undefined,
+        userId: data.userId as string,
+        imageUrls: data.imageUrls as string[] | undefined,
+      };
+    });
+    console.log('fetchGlobalPosts: Fetched posts:', posts);
+    return posts;
+  } catch (error: any) {
+    console.error('fetchGlobalPosts: Error fetching global posts:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+    throw new Error(error.message || 'Failed to fetch global posts');
   }
-  const snapshot = await db.collection('global_posts').get();
-  if (snapshot.empty) {
-    return [];
-  }
-  const posts: BlogPost[] = snapshot.docs.map(doc => ({
-    id: doc.id,
-    title: doc.data().title as string,
-    content: doc.data().content as string,
-    createdAt: doc.data().createdAt as Timestamp,
-    excerpt: doc.data().excerpt as string | undefined,
-    userId: doc.data().userId as string,
-    imageUrls: doc.data().imageUrls as string[] | undefined,
-  }));
-  return posts;
 }
 
 export async function checkAdmin(idToken: string) {
