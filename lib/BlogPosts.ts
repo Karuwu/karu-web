@@ -39,11 +39,11 @@ export const getBlogPosts = async (uid?: string): Promise<BlogPost[]> => {
       imageUrls: doc.data().imageUrls as string[] | undefined,
     }));
     return posts;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching posts from Firebase:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any).code,
-      details: (error as any).details,
+      message: error.message,
+      code: error.code,
+      details: error.details,
     });
     return [];
   }
@@ -72,11 +72,11 @@ export const getGlobalPosts = async (): Promise<BlogPost[]> => {
       imageUrls: doc.data().imageUrls as string[] | undefined,
     }));
     return posts;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching global posts from Firebase:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any).code,
-      details: (error as any).details,
+      message: error.message,
+      code: error.code,
+      details: error.details,
     });
     return [];
   }

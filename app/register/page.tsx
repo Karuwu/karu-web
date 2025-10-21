@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getFirestore, doc, setDoc, query, where, getDocs, collection } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, query, where, getDocs, collection } from 'firebase/firestore';
 import { Box, TextField, Button, Typography, CircularProgress, Alert } from '@mui/material';
 import Link from 'next/link';
 import { auth, db } from '../../lib/firebase-client';
+import { useAuth } from '../../components/AuthProvider';
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('');
@@ -16,6 +17,18 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('RegisterPage: User already logged in, redirecting to /');
+      router.push('/');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || user) {
+    return <CircularProgress sx={{ display: 'block', mx: 'auto', mt: 10 }} />;
+  }
 
   const validateUsername = (username: string) => {
     return /^[a-zA-Z0-9_-]{3,}$/.test(username);
@@ -23,9 +36,15 @@ export default function RegisterPage() {
 
   const checkUsernameUnique = async (username: string) => {
     const usernameLower = username.toLowerCase();
-    const q = query(collection(db, 'users'), where('usernameLower', '==', usernameLower));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.empty;
+    try {
+      const q = query(collection(db, 'users'), where('usernameLower', '==', usernameLower));
+      const querySnapshot = await getDocs(q);
+      console.log('RegisterPage: Username check:', { username, isUnique: querySnapshot.empty });
+      return querySnapshot.empty;
+    } catch (err) {
+      console.error('RegisterPage: Username check failed:', err);
+      throw err;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,42 +52,48 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    if (!validateUsername(username)) {
-      setError('Username must be at least 3 characters and contain only letters, numbers, underscores, or hyphens.');
-      setLoading(false);
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      setLoading(false);
-      return;
-    }
-
     try {
+      if (!validateUsername(username)) {
+        setError('Username must be at least 3 characters and contain only letters, numbers, underscores, or hyphens.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+
+      console.log('RegisterPage: Attempting registration with email:', email);
       const isUnique = await checkUsernameUnique(username);
       if (!isUnique) {
         setError('Username has already been taken!');
-        setLoading(false);
         return;
       }
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log('RegisterPage: User created, UID:', user.uid);
 
       await updateProfile(user, { displayName: username });
+      console.log('RegisterPage: Profile updated with username:', username);
+
+      // Re-authenticate to ensure valid token for Firestore write
+      const reAuth = await signInWithEmailAndPassword(auth, email, password);
+      console.log('RegisterPage: Re-authenticated, UID:', reAuth.user.uid);
 
       await setDoc(doc(db, 'users', user.uid), {
-        username: username,
+        username,
         usernameLower: username.toLowerCase(),
-        email: email,
+        email,
         isPrivate: false,
         isAdmin: false,
         createdAt: new Date(),
       });
+      console.log('RegisterPage: User document created for UID:', user.uid);
 
       router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to register. Please try again.');
+    } catch (err) {
+      console.error('RegisterPage: Registration failed:', err);
+      setError(err.message || 'Failed to register. Please check your credentials or Firebase configuration.');
     } finally {
       setLoading(false);
     }
@@ -85,7 +110,7 @@ export default function RegisterPage() {
           onChange={(e) => setUsername(e.target.value)}
           required
           fullWidth
-          helperText="At least 3 characters, letters, numbers, underscores, or hyphens."
+          helperText="At least 3 characters."
         />
         <TextField
           label="Email"

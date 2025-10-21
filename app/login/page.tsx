@@ -18,6 +18,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
+      console.log('LoginPage: User already logged in, redirecting to /');
       router.push('/');
     }
   }, [user, authLoading, router]);
@@ -32,10 +33,18 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log('LoginPage: Attempting login with email:', email);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('LoginPage: Login successful, user:', userCredential.user.uid);
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Failed to log in. Please check your credentials.');
+      console.error('LoginPage: Login failed:', {
+        message: err.message || 'Unknown error',
+        code: err.code || 'No code',
+        details: err.details || 'No details',
+        stack: err.stack || 'No stack',
+      });
+      setError(err.message || 'Failed to log in. Please check your credentials or Firebase configuration.');
     } finally {
       setLoading(false);
     }

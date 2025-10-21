@@ -2,7 +2,6 @@
 
 import { db, auth } from '../lib/firebase';
 import { Timestamp } from 'firebase-admin/firestore';
-import { getStorage } from 'firebase-admin/storage';
 
 interface CreatePostParams {
   title: string;
@@ -50,7 +49,7 @@ interface Score {
   userId: string;
 }
 
-export async function createPost({ title, content, isGlobal, idToken, images }: CreatePostParams) {
+export async function createPost({ title, content, isGlobal, idToken }: CreatePostParams) {
   try {
     const decodedToken = await auth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
@@ -65,28 +64,12 @@ export async function createPost({ title, content, isGlobal, idToken, images }: 
       throw new Error('Only admins can create global posts');
     }
 
-    const imageUrls: string[] = [];
-    if (images && images.length > 0) {
-      const bucket = getStorage().bucket();
-      for (const image of images.slice(0, 2)) {
-        const file = bucket.file(`users/${uid}/posts/${Date.now()}_${image.name}`);
-        await file.save(Buffer.from(await image.arrayBuffer()), {
-          contentType: image.type,
-        });
-        const [url] = await file.getSignedUrl({
-          action: 'read',
-          expires: '03-01-2500',
-        });
-        imageUrls.push(url);
-      }
-    }
-
     const postData = {
       title,
       content,
       createdAt: Timestamp.now(),
       userId: uid,
-      imageUrls,
+      imageUrls: [], // Disabled image uploads due to Spark plan
     };
 
     if (isGlobal) {
@@ -95,7 +78,10 @@ export async function createPost({ title, content, isGlobal, idToken, images }: 
       await db.collection(`users/${uid}/posts`).add(postData);
     }
   } catch (error: any) {
-    console.error('Error creating post:', error);
+    console.error('Error creating post:', {
+      message: error.message,
+      code: error.code,
+    });
     throw new Error(error.message || 'Failed to create post');
   }
 }
@@ -137,7 +123,10 @@ export async function createScore({
 
     await db.collection(`users/${uid}/scores`).add(scoreData);
   } catch (error: any) {
-    console.error('Error creating score:', error);
+    console.error('Error creating score:', {
+      message: error.message,
+      code: error.code,
+    });
     throw new Error(error.message || 'Failed to create score');
   }
 }
@@ -165,7 +154,10 @@ export async function fetchTopScores(uid: string, idToken: string) {
     }));
     return scores;
   } catch (error: any) {
-    console.error('Error fetching scores:', error);
+    console.error('Error fetching scores:', {
+      message: error.message,
+      code: error.code,
+    });
     throw new Error(error.message || 'Failed to fetch scores');
   }
 }
@@ -188,7 +180,10 @@ export async function fetchBlogPosts(uid: string, idToken: string) {
     }));
     return posts;
   } catch (error: any) {
-    console.error('Error fetching posts:', error);
+    console.error('Error fetching posts:', {
+      message: error.message,
+      code: error.code,
+    });
     throw new Error(error.message || 'Failed to fetch posts');
   }
 }
@@ -198,7 +193,10 @@ export async function fetchGlobalPosts(idToken?: string) {
     try {
       await auth.verifyIdToken(idToken);
     } catch (error: any) {
-      console.error('Error verifying token for global posts:', error);
+      console.error('Error verifying token for global posts:', {
+        message: error.message,
+        code: error.code,
+      });
       throw new Error(error.message || 'Failed to verify token');
     }
   }

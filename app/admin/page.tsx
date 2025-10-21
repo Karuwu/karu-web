@@ -45,10 +45,35 @@ export default function AdminPage() {
             router.push('/admin-error');
           }
         } catch (err: any) {
-          console.error('AdminPage: Error checking admin status:', err);
-          setError(err.message || 'Failed to verify admin status');
-          setLoadingAdmin(false);
-          router.push('/admin-error');
+          if (err.message.includes('auth/invalid-credential')) {
+            console.log('AdminPage: Invalid credential, attempting to refresh idToken');
+            try {
+              const newIdToken = await getUserIdToken(); // Force refresh
+              if (!newIdToken) {
+                setError('Failed to refresh authentication token');
+                router.push('/login');
+                return;
+              }
+              const adminStatus = await checkAdmin(newIdToken);
+              console.log('AdminPage: checkAdmin result after refresh:', adminStatus);
+              setIsAdmin(adminStatus);
+              setLoadingAdmin(false);
+              if (!adminStatus) {
+                console.log('AdminPage: Not admin after refresh, redirecting to /admin-error');
+                router.push('/admin-error');
+              }
+            } catch (refreshErr: any) {
+              console.error('AdminPage: Error refreshing idToken:', refreshErr);
+              setError(refreshErr.message || 'Failed to verify admin status');
+              setLoadingAdmin(false);
+              router.push('/admin-error');
+            }
+          } else {
+            console.error('AdminPage: Error checking admin status:', err);
+            setError(err.message || 'Failed to verify admin status');
+            setLoadingAdmin(false);
+            router.push('/admin-error');
+          }
         }
       }).catch(err => {
         console.error('AdminPage: Error getting idToken:', err);
